@@ -1,386 +1,471 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+/*
+ * Analysis Results — The Grand Reveal
+ * 
+ * Design Philosophy (Pixar's "Staging"):
+ * This is the payoff moment. The reveal should feel cinematic:
+ * - Hero card announces the watch with confidence
+ * - Details unfold progressively, not all at once
+ * - Red flags are serious but not alarming
+ * - Positive signs celebrate authenticity
+ * 
+ * Jony Ive: "True simplicity is derived from so much more than 
+ * just the absence of clutter and ornamentation. It's about 
+ * bringing order to complexity."
+ */
+
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  CheckIcon, 
+  AlertIcon, 
+  InfoIcon,
+  ChevronRightIcon,
+  ShieldIcon,
+  ImageIcon,
+} from "./icons";
 import type { WatchPhotoExtraction } from "@/types/watch-schema";
 
 interface AnalysisResultsProps {
   data: WatchPhotoExtraction;
 }
 
-export function AnalysisResults({ data }: AnalysisResultsProps) {
-  const getConfidenceBadgeVariant = (level: string) => {
-    switch (level.toLowerCase()) {
-      case "high":
-        return "default";
-      case "medium":
-        return "secondary";
-      case "low":
-        return "outline";
-      default:
-        return "outline";
-    }
-  };
+// Stagger animation configuration
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.1,
+    },
+  },
+};
 
-  const getConditionColor = (grade: string) => {
-    const g = grade.toLowerCase();
-    if (g.includes("mint") || g.includes("excellent")) return "text-emerald-400";
-    if (g.includes("very_good") || g.includes("good")) return "text-amber-400";
-    if (g.includes("fair")) return "text-orange-400";
-    return "text-red-400";
-  };
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      type: "spring" as const,
+      stiffness: 300,
+      damping: 30,
+    },
+  },
+};
+
+export function AnalysisResults({ data }: AnalysisResultsProps) {
+  const [expandedSection, setExpandedSection] = useState<string | null>("identity");
+
+  const confidenceColor = {
+    high: "text-emerald-400",
+    medium: "text-amber-400", 
+    low: "text-orange-400",
+    inconclusive: "text-muted-foreground",
+  }[data.authenticity_indicators.confidence_level.toLowerCase()] || "text-muted-foreground";
+
+  const confidenceBg = {
+    high: "bg-emerald-500/10 border-emerald-500/20",
+    medium: "bg-amber-500/10 border-amber-500/20",
+    low: "bg-orange-500/10 border-orange-500/20",
+    inconclusive: "bg-muted border-border",
+  }[data.authenticity_indicators.confidence_level.toLowerCase()] || "bg-muted border-border";
 
   return (
-    <div className="space-y-6">
-      {/* Header Card - Watch Identity */}
-      <Card className="overflow-hidden border-amber-500/30 bg-gradient-to-br from-amber-950/20 to-transparent">
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-amber-400/80 text-sm font-medium uppercase tracking-wider">
-                {data.watch_identity.brand}
-              </p>
-              <CardTitle className="text-2xl mt-1">
-                {data.watch_identity.model_name}
-              </CardTitle>
-              {data.watch_identity.collection_family && (
-                <p className="text-muted-foreground text-sm mt-1">
-                  {data.watch_identity.collection_family}
-                </p>
-              )}
-            </div>
-            <Badge variant={getConfidenceBadgeVariant(data.authenticity_indicators.confidence_level)}>
-              {data.authenticity_indicators.confidence_level} confidence
-            </Badge>
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-4"
+    >
+      {/* Hero Card — The Watch Identity */}
+      <motion.div
+        variants={itemVariants}
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-card via-card to-primary/5 border border-border"
+      >
+        {/* Decorative gradient orb */}
+        <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
+        
+        <div className="relative p-6">
+          {/* Brand & Model */}
+          <div className="mb-4">
+            <motion.p
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-primary text-sm font-medium tracking-wider uppercase"
+            >
+              {data.watch_identity.brand}
+            </motion.p>
+            <motion.h2
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-2xl font-semibold mt-1 tracking-tight"
+            >
+              {data.watch_identity.model_name}
+            </motion.h2>
+            {data.watch_identity.collection_family && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="text-muted-foreground text-sm mt-1"
+              >
+                {data.watch_identity.collection_family}
+              </motion.p>
+            )}
           </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="grid grid-cols-2 gap-4 text-sm">
+
+          {/* Key details grid */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="grid grid-cols-2 gap-4"
+          >
             {data.watch_identity.reference_number && (
               <div>
-                <span className="text-muted-foreground">Reference</span>
-                <p className="font-mono font-medium">{data.watch_identity.reference_number}</p>
-              </div>
-            )}
-            {data.watch_identity.serial_number && (
-              <div>
-                <span className="text-muted-foreground">Serial</span>
-                <p className="font-mono font-medium">{data.watch_identity.serial_number}</p>
+                <p className="text-xs text-muted-foreground">Reference</p>
+                <p className="font-mono text-sm font-medium">{data.watch_identity.reference_number}</p>
               </div>
             )}
             {data.watch_identity.estimated_year && (
               <div>
-                <span className="text-muted-foreground">Est. Year</span>
-                <p className="font-medium">{data.watch_identity.estimated_year}</p>
+                <p className="text-xs text-muted-foreground">Est. Year</p>
+                <p className="text-sm font-medium">{data.watch_identity.estimated_year}</p>
               </div>
             )}
             <div>
-              <span className="text-muted-foreground">Dial</span>
-              <p className="font-medium">{data.watch_identity.dial_variant}</p>
+              <p className="text-xs text-muted-foreground">Dial</p>
+              <p className="text-sm font-medium">{data.watch_identity.dial_variant}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Case</p>
+              <p className="text-sm font-medium">{data.physical_observations.case_material}</p>
+            </div>
+          </motion.div>
+
+          {/* Confidence badge */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.6 }}
+            className={`mt-5 inline-flex items-center gap-2 px-3 py-1.5 rounded-full border ${confidenceBg}`}
+          >
+            <ShieldIcon size={14} className={confidenceColor} />
+            <span className={`text-xs font-medium ${confidenceColor}`}>
+              {data.authenticity_indicators.confidence_level.charAt(0).toUpperCase() + 
+               data.authenticity_indicators.confidence_level.slice(1)} Confidence
+            </span>
+          </motion.div>
+        </div>
+      </motion.div>
+
+      {/* Authenticity Assessment */}
+      <motion.div variants={itemVariants}>
+        <CollapsibleSection
+          id="authenticity"
+          title="Authenticity Assessment"
+          subtitle={`${data.authenticity_indicators.positive_signs.length} positive, ${data.authenticity_indicators.red_flags.length} flags`}
+          icon={<ShieldIcon size={18} />}
+          isExpanded={expandedSection === "authenticity"}
+          onToggle={() => setExpandedSection(expandedSection === "authenticity" ? null : "authenticity")}
+        >
+          <div className="space-y-4">
+            {/* Positive signs */}
+            {data.authenticity_indicators.positive_signs.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-emerald-400 uppercase tracking-wider">Positive Indicators</p>
+                {data.authenticity_indicators.positive_signs.map((sign, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="flex items-start gap-2 p-2.5 rounded-lg bg-emerald-500/5 border border-emerald-500/10"
+                  >
+                    <CheckIcon size={14} className="text-emerald-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">{sign}</span>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {/* Concerns */}
+            {data.authenticity_indicators.concerns.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-amber-400 uppercase tracking-wider">To Verify</p>
+                {data.authenticity_indicators.concerns.map((concern, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-500/5 border border-amber-500/10"
+                  >
+                    <InfoIcon size={14} className="text-amber-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">{concern}</span>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {/* Red flags */}
+            {data.authenticity_indicators.red_flags.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-red-400 uppercase tracking-wider">Red Flags</p>
+                {data.authenticity_indicators.red_flags.map((flag, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="flex items-start gap-2 p-2.5 rounded-lg bg-red-500/5 border border-red-500/10"
+                  >
+                    <AlertIcon size={14} className="text-red-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">{flag}</span>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {/* Summary reasoning */}
+            <div className="pt-2 border-t border-border">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Assessment Summary</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {data.authenticity_indicators.reasoning}
+              </p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </CollapsibleSection>
+      </motion.div>
 
-      {/* Tabs for detailed info */}
-      <Tabs defaultValue="specs" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 h-auto">
-          <TabsTrigger value="specs" className="text-xs py-2">Specs</TabsTrigger>
-          <TabsTrigger value="condition" className="text-xs py-2">Condition</TabsTrigger>
-          <TabsTrigger value="auth" className="text-xs py-2">Auth</TabsTrigger>
-          <TabsTrigger value="needs" className="text-xs py-2">Needs</TabsTrigger>
-        </TabsList>
+      {/* Condition */}
+      <motion.div variants={itemVariants}>
+        <CollapsibleSection
+          id="condition"
+          title="Condition"
+          subtitle={data.condition_assessment.overall_grade}
+          isExpanded={expandedSection === "condition"}
+          onToggle={() => setExpandedSection(expandedSection === "condition" ? null : "condition")}
+        >
+          <div className="space-y-4">
+            {/* Overall grade */}
+            <div className="text-center py-3 bg-muted/30 rounded-xl">
+              <p className="text-xs text-muted-foreground mb-1">Overall Grade</p>
+              <p className="text-xl font-semibold capitalize text-primary">
+                {data.condition_assessment.overall_grade.replace(/_/g, " ")}
+              </p>
+            </div>
 
-        <TabsContent value="specs" className="mt-4">
-          <Card>
-            <CardContent className="pt-6">
-              <ScrollArea className="h-[400px] pr-4">
-                <div className="space-y-6">
-                  {/* Case */}
-                  <div>
-                    <h4 className="font-semibold text-amber-400 mb-3 flex items-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10"/>
-                      </svg>
-                      Case
-                    </h4>
-                    <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                      <dt className="text-muted-foreground">Material</dt>
-                      <dd>{data.physical_observations.case_material}</dd>
-                      <dt className="text-muted-foreground">Finish</dt>
-                      <dd>{data.physical_observations.case_finish}</dd>
-                      <dt className="text-muted-foreground">Diameter</dt>
-                      <dd>{data.physical_observations.case_diameter_estimate}</dd>
-                      <dt className="text-muted-foreground">Shape</dt>
-                      <dd>{data.physical_observations.case_shape}</dd>
-                    </dl>
-                  </div>
-
-                  <Separator />
-
-                  {/* Bezel & Crystal */}
-                  <div>
-                    <h4 className="font-semibold text-amber-400 mb-3 flex items-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/>
-                      </svg>
-                      Bezel & Crystal
-                    </h4>
-                    <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                      <dt className="text-muted-foreground">Bezel Type</dt>
-                      <dd>{data.physical_observations.bezel_type}</dd>
-                      <dt className="text-muted-foreground">Bezel Material</dt>
-                      <dd>{data.physical_observations.bezel_material}</dd>
-                      <dt className="text-muted-foreground">Insert</dt>
-                      <dd>{data.physical_observations.bezel_insert_material}</dd>
-                      <dt className="text-muted-foreground">Crystal</dt>
-                      <dd>{data.physical_observations.crystal_material}</dd>
-                      <dt className="text-muted-foreground">Cyclops</dt>
-                      <dd>{data.physical_observations.has_cyclops ? "Yes" : "No"}</dd>
-                    </dl>
-                  </div>
-
-                  <Separator />
-
-                  {/* Dial & Hands */}
-                  <div>
-                    <h4 className="font-semibold text-amber-400 mb-3 flex items-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                      </svg>
-                      Dial & Hands
-                    </h4>
-                    <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                      <dt className="text-muted-foreground">Dial Color</dt>
-                      <dd>{data.physical_observations.dial_color}</dd>
-                      <dt className="text-muted-foreground">Dial Finish</dt>
-                      <dd>{data.physical_observations.dial_finish}</dd>
-                      <dt className="text-muted-foreground">Indices</dt>
-                      <dd>{data.physical_observations.indices_type}</dd>
-                      <dt className="text-muted-foreground">Hands</dt>
-                      <dd>{data.physical_observations.hands_style}</dd>
-                      <dt className="text-muted-foreground">Date</dt>
-                      <dd>{data.physical_observations.has_date ? `Yes - ${data.physical_observations.date_position}` : "No"}</dd>
-                    </dl>
-                  </div>
-
-                  <Separator />
-
-                  {/* Crown */}
-                  <div>
-                    <h4 className="font-semibold text-amber-400 mb-3 flex items-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/>
-                      </svg>
-                      Crown
-                    </h4>
-                    <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                      <dt className="text-muted-foreground">Type</dt>
-                      <dd>{data.physical_observations.crown_type}</dd>
-                      <dt className="text-muted-foreground">Guards</dt>
-                      <dd>{data.physical_observations.has_crown_guards ? "Yes" : "No"}</dd>
-                    </dl>
-                  </div>
-
-                  <Separator />
-
-                  {/* Bracelet */}
-                  <div>
-                    <h4 className="font-semibold text-amber-400 mb-3 flex items-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/>
-                      </svg>
-                      Bracelet/Strap
-                    </h4>
-                    <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                      <dt className="text-muted-foreground">Type</dt>
-                      <dd>{data.physical_observations.bracelet_type}</dd>
-                      <dt className="text-muted-foreground">Material</dt>
-                      <dd>{data.physical_observations.bracelet_material}</dd>
-                      <dt className="text-muted-foreground">Clasp</dt>
-                      <dd>{data.physical_observations.clasp_type}</dd>
-                    </dl>
-                  </div>
+            {/* Component conditions */}
+            <div className="space-y-2">
+              {[
+                { label: "Crystal", value: data.condition_assessment.crystal_condition },
+                { label: "Case", value: data.condition_assessment.case_condition },
+                { label: "Bezel", value: data.condition_assessment.bezel_condition },
+                { label: "Dial", value: data.condition_assessment.dial_condition },
+                { label: "Bracelet", value: data.condition_assessment.bracelet_condition },
+              ].map((item, i) => (
+                <div key={i} className="flex justify-between items-start text-sm py-2 border-b border-border/50 last:border-0">
+                  <span className="text-muted-foreground">{item.label}</span>
+                  <span className="text-right max-w-[60%]">{item.value}</span>
                 </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              ))}
+            </div>
 
-        <TabsContent value="condition" className="mt-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="space-y-6">
-                {/* Overall Grade */}
-                <div className="text-center py-4 bg-muted/30 rounded-xl">
-                  <p className="text-sm text-muted-foreground mb-1">Overall Condition</p>
-                  <p className={`text-3xl font-bold capitalize ${getConditionColor(data.condition_assessment.overall_grade)}`}>
-                    {data.condition_assessment.overall_grade.replace(/_/g, " ")}
-                  </p>
-                </div>
-
-                {/* Component conditions */}
-                <div className="space-y-4">
-                  {[
-                    { label: "Crystal", value: data.condition_assessment.crystal_condition },
-                    { label: "Case", value: data.condition_assessment.case_condition },
-                    { label: "Bezel", value: data.condition_assessment.bezel_condition },
-                    { label: "Dial", value: data.condition_assessment.dial_condition },
-                    { label: "Bracelet", value: data.condition_assessment.bracelet_condition },
-                  ].map((item) => (
-                    <div key={item.label} className="flex justify-between items-start text-sm">
-                      <span className="text-muted-foreground">{item.label}</span>
-                      <span className="text-right max-w-[60%]">{item.value}</span>
-                    </div>
+            {/* Visible damage */}
+            {data.condition_assessment.visible_damage.length > 0 && (
+              <div className="pt-2">
+                <p className="text-xs text-orange-400 uppercase tracking-wider mb-2">Visible Issues</p>
+                <ul className="space-y-1">
+                  {data.condition_assessment.visible_damage.map((damage, i) => (
+                    <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                      <span className="text-orange-400">•</span>
+                      {damage}
+                    </li>
                   ))}
-                </div>
-
-                {/* Visible damage */}
-                {data.condition_assessment.visible_damage.length > 0 && (
-                  <>
-                    <Separator />
-                    <div>
-                      <h4 className="font-semibold mb-3 text-orange-400">Visible Damage</h4>
-                      <ul className="space-y-2">
-                        {data.condition_assessment.visible_damage.map((damage, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm">
-                            <span className="text-orange-400 mt-0.5">•</span>
-                            <span>{damage}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </>
-                )}
+                </ul>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            )}
+          </div>
+        </CollapsibleSection>
+      </motion.div>
 
-        <TabsContent value="auth" className="mt-4">
-          <Card>
-            <CardContent className="pt-6">
-              <ScrollArea className="h-[400px] pr-4">
-                <div className="space-y-6">
-                  {/* Positive Signs */}
-                  {data.authenticity_indicators.positive_signs.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold mb-3 flex items-center gap-2 text-emerald-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>
-                        </svg>
-                        Positive Indicators
-                      </h4>
-                      <ul className="space-y-2">
-                        {data.authenticity_indicators.positive_signs.map((sign, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm bg-emerald-500/10 p-2 rounded-lg">
-                            <span className="text-emerald-400 mt-0.5">✓</span>
-                            <span>{sign}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+      {/* Physical Details */}
+      <motion.div variants={itemVariants}>
+        <CollapsibleSection
+          id="specs"
+          title="Physical Specifications"
+          subtitle={`${data.physical_observations.case_diameter_estimate} ${data.physical_observations.case_material}`}
+          isExpanded={expandedSection === "specs"}
+          onToggle={() => setExpandedSection(expandedSection === "specs" ? null : "specs")}
+        >
+          <div className="space-y-4">
+            {/* Case */}
+            <SpecGroup title="Case">
+              <SpecRow label="Material" value={data.physical_observations.case_material} />
+              <SpecRow label="Finish" value={data.physical_observations.case_finish} />
+              <SpecRow label="Diameter" value={data.physical_observations.case_diameter_estimate} />
+              <SpecRow label="Shape" value={data.physical_observations.case_shape} />
+            </SpecGroup>
 
-                  {/* Concerns */}
-                  {data.authenticity_indicators.concerns.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold mb-3 flex items-center gap-2 text-amber-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>
-                        </svg>
-                        Concerns to Verify
-                      </h4>
-                      <ul className="space-y-2">
-                        {data.authenticity_indicators.concerns.map((concern, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm bg-amber-500/10 p-2 rounded-lg">
-                            <span className="text-amber-400 mt-0.5">!</span>
-                            <span>{concern}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+            {/* Bezel */}
+            <SpecGroup title="Bezel">
+              <SpecRow label="Type" value={data.physical_observations.bezel_type} />
+              <SpecRow label="Material" value={data.physical_observations.bezel_material} />
+              <SpecRow label="Insert" value={data.physical_observations.bezel_insert_material} />
+            </SpecGroup>
 
-                  {/* Red Flags */}
-                  {data.authenticity_indicators.red_flags.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold mb-3 flex items-center gap-2 text-red-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>
-                        </svg>
-                        Red Flags
-                      </h4>
-                      <ul className="space-y-2">
-                        {data.authenticity_indicators.red_flags.map((flag, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm bg-red-500/10 p-2 rounded-lg">
-                            <span className="text-red-400 mt-0.5">✕</span>
-                            <span>{flag}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+            {/* Crystal */}
+            <SpecGroup title="Crystal">
+              <SpecRow label="Material" value={data.physical_observations.crystal_material} />
+              <SpecRow label="Cyclops" value={data.physical_observations.has_cyclops ? "Present" : "None"} />
+            </SpecGroup>
 
-                  <Separator />
+            {/* Dial */}
+            <SpecGroup title="Dial & Hands">
+              <SpecRow label="Color" value={data.physical_observations.dial_color} />
+              <SpecRow label="Finish" value={data.physical_observations.dial_finish} />
+              <SpecRow label="Indices" value={data.physical_observations.indices_type} />
+              <SpecRow label="Hands" value={data.physical_observations.hands_style} />
+              {data.physical_observations.has_date && (
+                <SpecRow label="Date" value={data.physical_observations.date_position} />
+              )}
+            </SpecGroup>
 
-                  {/* Reasoning */}
-                  <div>
-                    <h4 className="font-semibold mb-3">Assessment Summary</h4>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {data.authenticity_indicators.reasoning}
-                    </p>
-                  </div>
+            {/* Bracelet */}
+            <SpecGroup title="Bracelet">
+              <SpecRow label="Type" value={data.physical_observations.bracelet_type} />
+              <SpecRow label="Material" value={data.physical_observations.bracelet_material} />
+              <SpecRow label="Clasp" value={data.physical_observations.clasp_type} />
+            </SpecGroup>
+          </div>
+        </CollapsibleSection>
+      </motion.div>
+
+      {/* Additional Photos Needed */}
+      {data.additional_photos_needed.length > 0 && (
+        <motion.div variants={itemVariants}>
+          <CollapsibleSection
+            id="photos"
+            title="Recommended Photos"
+            subtitle={`${data.additional_photos_needed.length} suggestions`}
+            icon={<ImageIcon size={18} />}
+            isExpanded={expandedSection === "photos"}
+            onToggle={() => setExpandedSection(expandedSection === "photos" ? null : "photos")}
+          >
+            <div className="space-y-2">
+              {data.additional_photos_needed.map((photo, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border border-border"
+                >
+                  <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center flex-shrink-0 font-medium">
+                    {i + 1}
+                  </span>
+                  <span className="text-sm">{photo}</span>
                 </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              ))}
+            </div>
+          </CollapsibleSection>
+        </motion.div>
+      )}
 
-        <TabsContent value="needs" className="mt-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="space-y-6">
-                {/* Additional photos needed */}
-                {data.additional_photos_needed.length > 0 && (
-                  <div>
-                    <h4 className="font-semibold mb-3 flex items-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-                      </svg>
-                      Additional Photos Recommended
-                    </h4>
-                    <ul className="space-y-2">
-                      {data.additional_photos_needed.map((photo, i) => (
-                        <li key={i} className="flex items-start gap-3 text-sm p-3 bg-muted/30 rounded-lg">
-                          <span className="bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded text-xs font-medium">
-                            {i + 1}
-                          </span>
-                          <span>{photo}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+      {/* Preliminary Assessment */}
+      <motion.div
+        variants={itemVariants}
+        className="p-4 rounded-xl bg-muted/30 border border-border"
+      >
+        <h3 className="text-sm font-medium mb-2">Summary</h3>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          {data.preliminary_assessment}
+        </p>
+      </motion.div>
+    </motion.div>
+  );
+}
 
-                <Separator />
+// Collapsible section component
+interface CollapsibleSectionProps {
+  id: string;
+  title: string;
+  subtitle?: string;
+  icon?: React.ReactNode;
+  isExpanded: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}
 
-                {/* Preliminary assessment */}
-                <div>
-                  <h4 className="font-semibold mb-3">Preliminary Assessment</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed bg-muted/30 p-4 rounded-xl">
-                    {data.preliminary_assessment}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+function CollapsibleSection({ 
+  title, 
+  subtitle, 
+  icon,
+  isExpanded, 
+  onToggle, 
+  children 
+}: CollapsibleSectionProps) {
+  return (
+    <div className="rounded-xl border border-border overflow-hidden">
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          {icon && <div className="text-muted-foreground">{icon}</div>}
+          <div className="text-left">
+            <h3 className="font-medium">{title}</h3>
+            {subtitle && (
+              <p className="text-xs text-muted-foreground capitalize">{subtitle}</p>
+            )}
+          </div>
+        </div>
+        <motion.div
+          animate={{ rotate: isExpanded ? 90 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ChevronRightIcon size={18} className="text-muted-foreground" />
+        </motion.div>
+      </button>
+      
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <div className="px-4 pb-4 border-t border-border pt-4">
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
+// Spec group component
+function SpecGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <h4 className="text-xs font-medium text-primary uppercase tracking-wider mb-2">{title}</h4>
+      <div className="space-y-1">{children}</div>
+    </div>
+  );
+}
+
+// Spec row component
+function SpecRow({ label, value }: { label: string; value: string }) {
+  if (!value) return null;
+  return (
+    <div className="flex justify-between items-start text-sm py-1.5">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-right max-w-[55%]">{value}</span>
+    </div>
+  );
+}

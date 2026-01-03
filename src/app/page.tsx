@@ -1,28 +1,59 @@
 "use client";
 
+/*
+ * Watchfinder — Main Experience
+ * 
+ * Design Philosophy:
+ * "Simplicity is the ultimate sophistication." — Leonardo da Vinci
+ * 
+ * This page orchestrates the entire user journey:
+ * 1. Welcome state — Inviting, clear value proposition
+ * 2. Capture state — Focused, guided photo collection
+ * 3. Analysis state — Anticipation building, professional feel
+ * 4. Results state — Comprehensive yet scannable report
+ * 
+ * Every transition should feel purposeful. Every interaction
+ * should provide feedback. The app should feel like a trusted
+ * expert in your pocket.
+ */
+
 import { useState, useRef, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { motion, AnimatePresence } from "framer-motion";
 import { CameraCapture } from "@/components/camera-capture";
 import { PhotoGallery } from "@/components/photo-gallery";
+import { PhotoGuide } from "@/components/photo-guide";
+import { AnalysisLoading } from "@/components/analysis-loading";
 import { AnalysisResults } from "@/components/analysis-results";
+import { 
+  WatchIcon, 
+  CameraIcon, 
+  UploadIcon, 
+  ScanIcon,
+  RefreshIcon,
+  PlusIcon,
+} from "@/components/icons";
 import type { WatchPhotoExtraction } from "@/types/watch-schema";
 
+// App states for clear flow management
+type AppState = "welcome" | "capture" | "analyzing" | "results";
+
 export default function Home() {
+  const [appState, setAppState] = useState<AppState>("welcome");
   const [photos, setPhotos] = useState<string[]>([]);
   const [showCamera, setShowCamera] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisProgress, setAnalysisProgress] = useState(0);
   const [results, setResults] = useState<WatchPhotoExtraction | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Photo capture handler
   const handleCapture = useCallback((imageData: string) => {
     setPhotos((prev) => [...prev, imageData]);
+    setAppState("capture");
     setError(null);
+    setShowCamera(false);
   }, []);
 
+  // File upload handler
   const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
@@ -33,41 +64,45 @@ export default function Home() {
         const result = event.target?.result;
         if (typeof result === "string") {
           setPhotos((prev) => [...prev, result]);
+          setAppState("capture");
           setError(null);
         }
       };
       reader.readAsDataURL(file);
     });
 
-    // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   }, []);
 
+  // Remove photo handler
   const removePhoto = useCallback((index: number) => {
-    setPhotos((prev) => prev.filter((_, i) => i !== index));
+    setPhotos((prev) => {
+      const newPhotos = prev.filter((_, i) => i !== index);
+      if (newPhotos.length === 0) {
+        setAppState("welcome");
+      }
+      return newPhotos;
+    });
   }, []);
 
+  // Reorder photos handler
+  const reorderPhotos = useCallback((newOrder: string[]) => {
+    setPhotos(newOrder);
+  }, []);
+
+  // Analysis handler
   const analyzePhotos = useCallback(async () => {
     if (photos.length === 0) return;
 
-    setIsAnalyzing(true);
-    setAnalysisProgress(0);
+    setAppState("analyzing");
     setError(null);
-    setResults(null);
-
-    // Simulate progress
-    const progressInterval = setInterval(() => {
-      setAnalysisProgress((prev) => Math.min(prev + Math.random() * 15, 90));
-    }, 500);
 
     try {
       const response = await fetch("/api/analyze", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ images: photos }),
       });
 
@@ -77,245 +112,312 @@ export default function Home() {
         throw new Error(data.error || "Analysis failed");
       }
 
-      setAnalysisProgress(100);
       setResults(data.data);
+      setAppState("results");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Analysis failed");
-    } finally {
-      clearInterval(progressInterval);
-      setIsAnalyzing(false);
+      setAppState("capture");
     }
   }, [photos]);
 
+  // Reset handler
   const resetAll = useCallback(() => {
     setPhotos([]);
     setResults(null);
     setError(null);
-    setAnalysisProgress(0);
+    setAppState("welcome");
+  }, []);
+
+  // Start new analysis (keep photos)
+  const newAnalysis = useCallback(() => {
+    setResults(null);
+    setError(null);
+    setAppState("capture");
   }, []);
 
   return (
     <main className="min-h-screen bg-background">
-      {/* Hero Header */}
-      <header className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-950/40 via-background to-background" />
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20" />
-        
-        <div className="relative px-4 pt-12 pb-8 max-w-lg mx-auto">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-black">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
-              </svg>
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight">Watchfinder</h1>
+      {/* Background gradient */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px]" />
+      </div>
+
+      {/* Header */}
+      <header className="relative">
+        <div className="px-5 pt-14 pb-6 safe-top">
+          <div className="max-w-lg mx-auto">
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-3"
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20">
+                <WatchIcon size={22} className="text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold tracking-tight">Watchfinder</h1>
+                <p className="text-xs text-muted-foreground">AI Authentication</p>
+              </div>
+            </motion.div>
           </div>
-          <p className="text-muted-foreground text-sm">
-            AI-powered watch authentication & analysis
-          </p>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="px-4 pb-8 max-w-lg mx-auto space-y-6">
-        {/* Camera/Upload Section */}
-        {!results && (
-          <Card className="border-dashed border-2 border-muted-foreground/20 bg-muted/10">
-            <CardContent className="pt-6">
-              {photos.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-amber-500/10 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
-                      <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
-                      <circle cx="12" cy="13" r="3"/>
-                    </svg>
-                  </div>
-                  <h3 className="font-semibold text-lg mb-2">Capture Watch Photos</h3>
-                  <p className="text-muted-foreground text-sm mb-6 max-w-xs mx-auto">
-                    Take photos from multiple angles for the most accurate authentication analysis
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                    <Button 
-                      onClick={() => setShowCamera(true)}
-                      className="bg-amber-500 hover:bg-amber-600 text-black font-medium"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
-                        <circle cx="12" cy="13" r="3"/>
-                      </svg>
-                      Open Camera
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="17 8 12 3 7 8"/>
-                        <line x1="12" x2="12" y1="3" y2="15"/>
-                      </svg>
-                      Upload Photos
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <PhotoGallery photos={photos} onRemove={removePhoto} />
+      <div className="relative px-5 pb-8">
+        <div className="max-w-lg mx-auto">
+          <AnimatePresence mode="wait">
+            {/* Welcome State */}
+            {appState === "welcome" && (
+              <motion.div
+                key="welcome"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4 }}
+                className="space-y-8"
+              >
+                {/* Hero section */}
+                <div className="text-center pt-8 pb-4">
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="relative w-24 h-24 mx-auto mb-6"
+                  >
+                    {/* Animated rings */}
+                    <motion.div
+                      animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.1, 0.3] }}
+                      transition={{ duration: 3, repeat: Infinity }}
+                      className="absolute inset-0 rounded-full border border-primary/30"
+                    />
+                    <motion.div
+                      animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.05, 0.2] }}
+                      transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
+                      className="absolute inset-0 rounded-full border border-primary/20"
+                    />
+                    
+                    {/* Center icon */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                        <ScanIcon size={28} className="text-primary" />
+                      </div>
+                    </div>
+                  </motion.div>
                   
+                  <motion.h2
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="text-2xl font-semibold tracking-tight mb-2"
+                  >
+                    Authenticate Any Watch
+                  </motion.h2>
+                  <motion.p
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="text-muted-foreground max-w-xs mx-auto"
+                  >
+                    Capture photos and get instant AI analysis of authenticity, condition, and specifications
+                  </motion.p>
+                </div>
+
+                {/* Action buttons */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="space-y-3"
+                >
+                  <button
+                    onClick={() => setShowCamera(true)}
+                    className="w-full flex items-center justify-center gap-3 h-14 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-primary-foreground rounded-2xl font-medium transition-all shadow-lg shadow-primary/20 btn-press"
+                  >
+                    <CameraIcon size={20} />
+                    Open Camera
+                  </button>
+                  
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full flex items-center justify-center gap-3 h-14 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-2xl font-medium transition-colors btn-press"
+                  >
+                    <UploadIcon size={20} />
+                    Upload Photos
+                  </button>
+                </motion.div>
+
+                {/* Feature highlights */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6 }}
+                  className="grid grid-cols-3 gap-4 pt-4"
+                >
+                  {[
+                    { label: "Instant", sublabel: "Analysis" },
+                    { label: "Detailed", sublabel: "Report" },
+                    { label: "Expert", sublabel: "AI Model" },
+                  ].map((feature, i) => (
+                    <div key={i} className="text-center">
+                      <p className="text-sm font-medium">{feature.label}</p>
+                      <p className="text-xs text-muted-foreground">{feature.sublabel}</p>
+                    </div>
+                  ))}
+                </motion.div>
+              </motion.div>
+            )}
+
+            {/* Capture State */}
+            {appState === "capture" && (
+              <motion.div
+                key="capture"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4 }}
+                className="space-y-6"
+              >
+                {/* Photo guide */}
+                <PhotoGuide capturedCount={photos.length} />
+
+                {/* Photo gallery */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-medium">Your Photos</h3>
+                    <span className="text-xs text-muted-foreground">{photos.length} captured</span>
+                  </div>
+                  <PhotoGallery 
+                    photos={photos} 
+                    onRemove={removePhoto}
+                    onReorder={reorderPhotos}
+                  />
+                </div>
+
+                {/* Add more buttons */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowCamera(true)}
+                    className="flex-1 flex items-center justify-center gap-2 h-11 bg-secondary hover:bg-secondary/80 rounded-xl text-sm font-medium transition-colors btn-press"
+                  >
+                    <CameraIcon size={16} />
+                    Camera
+                  </button>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex-1 flex items-center justify-center gap-2 h-11 bg-secondary hover:bg-secondary/80 rounded-xl text-sm font-medium transition-colors btn-press"
+                  >
+                    <PlusIcon size={16} />
+                    Upload
+                  </button>
+                </div>
+
+                {/* Error message */}
+                <AnimatePresence>
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="p-4 rounded-xl bg-destructive/10 border border-destructive/20"
+                    >
+                      <p className="text-sm text-destructive">{error}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Analyze button */}
+                <button
+                  onClick={analyzePhotos}
+                  disabled={photos.length < 1}
+                  className="w-full flex items-center justify-center gap-3 h-14 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 disabled:from-muted disabled:to-muted disabled:text-muted-foreground text-primary-foreground rounded-2xl font-medium transition-all shadow-lg shadow-primary/20 disabled:shadow-none btn-press"
+                >
+                  <ScanIcon size={20} />
+                  {photos.length < 3 
+                    ? `Analyze (${3 - photos.length} more recommended)` 
+                    : "Analyze Watch"
+                  }
+                </button>
+
+                {/* Cancel link */}
+                <button
+                  onClick={resetAll}
+                  className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
+                >
+                  Start Over
+                </button>
+              </motion.div>
+            )}
+
+            {/* Analyzing State */}
+            {appState === "analyzing" && (
+              <motion.div
+                key="analyzing"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.4 }}
+              >
+                <AnalysisLoading photos={photos} />
+              </motion.div>
+            )}
+
+            {/* Results State */}
+            {appState === "results" && results && (
+              <motion.div
+                key="results"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4 }}
+                className="space-y-6"
+              >
+                {/* Results header */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-semibold">Analysis Complete</h2>
+                    <p className="text-xs text-muted-foreground">
+                      Based on {photos.length} photo{photos.length !== 1 ? "s" : ""}
+                    </p>
+                  </div>
                   <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowCamera(true)}
-                      className="flex-1"
+                    <button
+                      onClick={newAnalysis}
+                      className="h-9 px-3 rounded-lg bg-secondary hover:bg-secondary/80 text-sm font-medium transition-colors flex items-center gap-2 btn-press"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <path d="M5 12h14"/>
-                        <path d="M12 5v14"/>
-                      </svg>
-                      Add More
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="flex-1"
+                      <PlusIcon size={14} />
+                      Add Photos
+                    </button>
+                    <button
+                      onClick={resetAll}
+                      className="h-9 px-3 rounded-lg bg-secondary hover:bg-secondary/80 text-sm font-medium transition-colors flex items-center gap-2 btn-press"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="17 8 12 3 7 8"/>
-                        <line x1="12" x2="12" y1="3" y2="15"/>
-                      </svg>
-                      Upload
-                    </Button>
+                      <RefreshIcon size={14} />
+                      New
+                    </button>
                   </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
 
-        {/* Photo Suggestions */}
-        {!results && photos.length > 0 && photos.length < 5 && (
-          <Card className="bg-amber-500/5 border-amber-500/20">
-            <CardContent className="py-4">
-              <div className="flex items-start gap-3">
-                <div className="text-amber-500 mt-0.5">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" x2="12" y1="16" y2="12"/>
-                    <line x1="12" x2="12.01" y1="8" y2="8"/>
-                  </svg>
-                </div>
-                <div className="text-sm">
-                  <p className="font-medium text-amber-500">Recommended Photos</p>
-                  <p className="text-muted-foreground mt-1">
-                    For best results, include: dial front, caseback, crown side, bezel closeup, and serial number if visible.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Analyze Button */}
-        {!results && photos.length > 0 && !isAnalyzing && (
-          <Button
-            onClick={analyzePhotos}
-            className="w-full h-14 text-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-semibold shadow-lg shadow-amber-500/25"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
-            Analyze Watch
-          </Button>
-        )}
-
-        {/* Analysis Progress */}
-        {isAnalyzing && (
-          <Card className="overflow-hidden">
-            <CardContent className="py-8">
-              <div className="text-center space-y-4">
-                <div className="w-16 h-16 mx-auto rounded-full bg-amber-500/10 flex items-center justify-center animate-pulse">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500 animate-spin">
-                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg">Analyzing Watch</h3>
-                  <p className="text-muted-foreground text-sm">
-                    Our AI is examining your photos...
-                  </p>
-                </div>
-                <div className="max-w-xs mx-auto">
-                  <Progress value={analysisProgress} className="h-2" />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {analysisProgress < 30 && "Processing images..."}
-                    {analysisProgress >= 30 && analysisProgress < 60 && "Identifying watch details..."}
-                    {analysisProgress >= 60 && analysisProgress < 90 && "Evaluating authenticity markers..."}
-                    {analysisProgress >= 90 && "Finalizing report..."}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Error Display */}
-        {error && (
-          <Card className="border-destructive/50 bg-destructive/10">
-            <CardContent className="py-4">
-              <div className="flex items-start gap-3">
-                <div className="text-destructive mt-0.5">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" x2="12" y1="8" y2="12"/>
-                    <line x1="12" x2="12.01" y1="16" y2="16"/>
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium text-destructive">Analysis Failed</p>
-                  <p className="text-sm text-muted-foreground mt-1">{error}</p>
-                </div>
-                <Button variant="ghost" size="sm" onClick={() => setError(null)}>
-                  Dismiss
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Results */}
-        {results && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Analysis Results</h2>
-              <Button variant="outline" size="sm" onClick={resetAll}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-                  <path d="M21 3v5h-5"/>
-                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
-                  <path d="M8 16H3v5"/>
-                </svg>
-                New Analysis
-              </Button>
-            </div>
-            <AnalysisResults data={results} />
-          </div>
-        )}
+                {/* Results content */}
+                <AnalysisResults data={results} />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
+      </div>
 
-      {/* Camera Overlay */}
-      {showCamera && (
-        <CameraCapture
-          onCapture={handleCapture}
-          onClose={() => setShowCamera(false)}
-        />
-      )}
+      {/* Camera overlay */}
+      <AnimatePresence>
+        {showCamera && (
+          <CameraCapture
+            onCapture={handleCapture}
+            onClose={() => setShowCamera(false)}
+            photoCount={photos.length}
+          />
+        )}
+      </AnimatePresence>
 
-      {/* Hidden File Input */}
+      {/* Hidden file input */}
       <input
         ref={fileInputRef}
         type="file"
@@ -324,6 +426,9 @@ export default function Home() {
         className="hidden"
         onChange={handleFileUpload}
       />
-      </main>
+
+      {/* Bottom safe area spacer */}
+      <div className="h-8 safe-bottom" />
+    </main>
   );
 }
