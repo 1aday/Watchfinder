@@ -48,7 +48,10 @@ const mockResults: WatchPhotoExtraction = {
     sub_model_variant: "41mm Black Dial",
     serial_number: "9R5X2K1M",
     estimated_year: "2020-2023",
-    dial_variant: "Black with Luminous Hour Markers"
+    dial_variant: "Black with Luminous Hour Markers",
+    bezel_variant: "Black Cerachrom",
+    bracelet_variant: "Oyster with Glidelock",
+    limited_edition: false
   },
   physical_observations: {
     case_material: "Oystersteel (904L)",
