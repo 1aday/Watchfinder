@@ -1,28 +1,49 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const dmSans = DM_Sans({
-  variable: "--font-geist-sans",
+/*
+ * Typography System — Jony Ive approach
+ * 
+ * Sans: Inter — Clean, highly legible, Swiss precision
+ *       Chosen for its optical sizing and careful spacing
+ * 
+ * Mono: JetBrains Mono — Technical details, reference numbers
+ *       The "tool watch" of typefaces - functional, precise
+ * 
+ * This combination evokes luxury watch marketing:
+ * confident headlines, readable body, precise technical specs
+ */
+
+const inter = Inter({
+  variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-geist-mono",
+  variable: "--font-mono",
   subsets: ["latin"],
+  display: "swap",
   weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
-  title: "Watchfinder | AI Watch Authentication",
-  description: "AI-powered luxury watch authentication and analysis. Take photos of any watch and get instant detailed analysis including identification, condition assessment, and authenticity evaluation.",
-  keywords: ["watch authentication", "luxury watches", "Rolex", "Omega", "watch verification", "AI analysis"],
+  title: "Watchfinder",
+  description: "AI-powered watch authentication. Capture. Analyze. Authenticate.",
+  keywords: [
+    "watch authentication",
+    "luxury watches", 
+    "Rolex authentication",
+    "watch verification",
+    "AI watch analysis",
+  ],
   authors: [{ name: "Watchfinder" }],
   openGraph: {
-    title: "Watchfinder | AI Watch Authentication",
-    description: "AI-powered luxury watch authentication and analysis",
+    title: "Watchfinder",
+    description: "AI-powered watch authentication",
     type: "website",
+    siteName: "Watchfinder",
   },
   appleWebApp: {
     capable: true,
@@ -37,7 +58,8 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: "#1a1814",
+  themeColor: "#151310",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({
@@ -46,9 +68,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body
-        className={`${dmSans.variable} ${jetbrainsMono.variable} antialiased font-sans`}
+        className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}
+        suppressHydrationWarning
       >
         {children}
       </body>
