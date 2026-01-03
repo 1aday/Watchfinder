@@ -230,10 +230,8 @@ export default function Home() {
       </div>
 
       {/* Header */}
-      <header className="relative">
-        <div className="px-5 pt-safe-top pb-6">
-          {/* Extra top padding for notch/status bar */}
-          <div className="h-12" />
+      <header className="relative mt-6">
+        <div className="px-5 pt-6 pb-6 safe-top">
           <div className="max-w-lg mx-auto">
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
