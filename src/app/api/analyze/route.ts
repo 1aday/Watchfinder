@@ -18,6 +18,7 @@ const watchExtractionSchema = {
           brand: { type: "string", description: "Watch brand name (e.g., Rolex, Omega, Patek Philippe)" },
           model_name: { type: "string", description: "Model name (e.g., Submariner, Speedmaster)" },
           collection_family: { type: "string", description: "Collection family if applicable" },
+          sub_model_variant: { type: "string", description: "Specific variant/size (e.g., 41mm Black Dial)" },
           reference_number: { type: "string", description: "Reference number if visible" },
           dial_variant: { type: "string", description: "Dial color/variant description" },
           bezel_variant: { type: "string", description: "Bezel type/variant" },
@@ -26,7 +27,7 @@ const watchExtractionSchema = {
           serial_number: { type: "string", description: "Serial number if visible" },
           estimated_year: { type: "string", description: "Estimated production year range" },
         },
-        required: ["brand", "model_name", "collection_family", "reference_number", "dial_variant", "bezel_variant", "bracelet_variant", "limited_edition", "serial_number", "estimated_year"],
+        required: ["brand", "model_name", "collection_family", "sub_model_variant", "reference_number", "dial_variant", "bezel_variant", "bracelet_variant", "limited_edition", "serial_number", "estimated_year"],
         additionalProperties: false,
       },
       physical_observations: {

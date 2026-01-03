@@ -17,7 +17,8 @@
  * expert in your pocket.
  */
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { CameraCapture } from "@/components/camera-capture";
 import { PhotoGallery } from "@/components/photo-gallery";
@@ -144,7 +145,7 @@ export default function Home() {
 
       {/* Header */}
       <header className="relative">
-        <div className="px-5 pt-14 pb-6 safe-top">
+        <div className="px-5 pt-20 pb-6 safe-top">
           <div className="max-w-lg mx-auto">
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
@@ -155,7 +156,7 @@ export default function Home() {
                 <WatchIcon size={22} className="text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold tracking-tight">Watchfinder</h1>
+                <h1 className="text-xl font-semibold tracking-tight">WatchFinder</h1>
                 <p className="text-xs text-muted-foreground">AI Authentication</p>
               </div>
             </motion.div>
@@ -370,36 +371,28 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.4 }}
-                className="space-y-6"
+                className="space-y-5"
               >
-                {/* Results header */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-lg font-semibold">Analysis Complete</h2>
-                    <p className="text-xs text-muted-foreground">
-                      Based on {photos.length} photo{photos.length !== 1 ? "s" : ""}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={newAnalysis}
-                      className="h-9 px-3 rounded-lg bg-secondary hover:bg-secondary/80 text-sm font-medium transition-colors flex items-center gap-2 btn-press"
-                    >
-                      <PlusIcon size={14} />
-                      Add Photos
-                    </button>
-                    <button
-                      onClick={resetAll}
-                      className="h-9 px-3 rounded-lg bg-secondary hover:bg-secondary/80 text-sm font-medium transition-colors flex items-center gap-2 btn-press"
-                    >
-                      <RefreshIcon size={14} />
-                      New
-                    </button>
-                  </div>
+                {/* Results content with photos */}
+                <AnalysisResults data={results} photos={photos} />
+                
+                {/* Action buttons at bottom */}
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={newAnalysis}
+                    className="flex-1 h-12 rounded-xl bg-secondary hover:bg-secondary/80 text-sm font-medium transition-colors flex items-center justify-center gap-2 btn-press"
+                  >
+                    <PlusIcon size={16} />
+                    Add More Photos
+                  </button>
+                  <button
+                    onClick={resetAll}
+                    className="flex-1 h-12 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary text-sm font-medium transition-colors flex items-center justify-center gap-2 btn-press"
+                  >
+                    <RefreshIcon size={16} />
+                    New Analysis
+                  </button>
                 </div>
-
-                {/* Results content */}
-                <AnalysisResults data={results} />
               </motion.div>
             )}
           </AnimatePresence>

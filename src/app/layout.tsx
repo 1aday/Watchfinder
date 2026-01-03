@@ -29,7 +29,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Watchfinder",
+  title: "WatchFinder",
   description: "AI-powered watch authentication. Capture. Analyze. Authenticate.",
   keywords: [
     "watch authentication",
