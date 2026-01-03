@@ -38,13 +38,99 @@ import type { WatchPhotoExtraction } from "@/types/watch-schema";
 // App states for clear flow management
 type AppState = "welcome" | "capture" | "analyzing" | "results";
 
+// Mock data for testing
+const mockResults: WatchPhotoExtraction = {
+  watch_identity: {
+    brand: "Rolex",
+    model_name: "Submariner Date",
+    reference_number: "126610LN",
+    collection_family: "Oyster Perpetual",
+    sub_model_variant: "41mm Black Dial",
+    serial_number: "9R5X2K1M",
+    estimated_year: "2020-2023",
+    dial_variant: "Black with Luminous Hour Markers"
+  },
+  physical_observations: {
+    case_material: "Oystersteel (904L)",
+    case_finish: "Polished and Brushed",
+    case_diameter_estimate: "41mm",
+    case_shape: "Round",
+    bezel_type: "Unidirectional Rotating",
+    bezel_material: "Cerachrom (Ceramic)",
+    bezel_insert_material: "Black Ceramic",
+    crystal_material: "Sapphire with Cyclops",
+    dial_color: "Black",
+    dial_finish: "Matte",
+    indices_type: "Applied Luminous Hour Markers",
+    hands_style: "Mercedes Hour, Sword Minute, Lollipop Seconds",
+    has_date: true,
+    date_position: "3 o'clock",
+    bracelet_type: "Oyster",
+    bracelet_material: "Oystersteel (904L)",
+    clasp_type: "Oysterlock Safety Clasp with Glidelock",
+    crown_type: "Screw-down Triplock",
+    has_crown_guards: true,
+    has_cyclops: true
+  },
+  condition_assessment: {
+    overall_grade: "Excellent",
+    crystal_condition: "No visible scratches or damage",
+    case_condition: "Minor hairlines on polished surfaces, bezel insert pristine",
+    bezel_condition: "Ceramic insert in excellent condition, no chips",
+    dial_condition: "Perfect, no fading or marks",
+    bracelet_condition: "Normal desk diving wear, all links present",
+    visible_damage: []
+  },
+  authenticity_indicators: {
+    positive_signs: [
+      "Correct serif font on dial text with proper spacing",
+      "Cyclops magnification appears correct (2.5x)",
+      "Luminous material consistency matches Chromalight specifications",
+      "Crown logo etching at 6 o'clock visible and correctly sized",
+      "Rehaut engraving quality and spacing consistent with genuine",
+      "Date wheel font and alignment matches reference specifications"
+    ],
+    concerns: [
+      "Cannot fully verify movement without caseback removal"
+    ],
+    red_flags: [],
+    confidence_level: "High",
+    reasoning: "The watch displays all expected characteristics of a genuine Rolex Submariner 126610LN. The dial printing, cyclops magnification, luminous material, and overall finishing quality are consistent with authentic Rolex manufacturing standards."
+  },
+  additional_photos_needed: [
+    "Caseback view to verify engravings",
+    "Lume shot in darkness to verify Chromalight color",
+    "Side profile for case finishing inspection"
+  ],
+  preliminary_assessment: "Based on the provided images, this Rolex Submariner Date 126610LN presents with multiple authentic markers and no immediate red flags. The watch appears to be in excellent condition with minimal wear. Professional authentication with movement inspection is recommended for final verification."
+};
+
 export default function Home() {
+  const searchParams = useSearchParams();
   const [appState, setAppState] = useState<AppState>("welcome");
   const [photos, setPhotos] = useState<string[]>([]);
   const [showCamera, setShowCamera] = useState(false);
   const [results, setResults] = useState<WatchPhotoExtraction | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Dev mode for testing UI states
+  useEffect(() => {
+    const devMode = searchParams.get("dev");
+    const testPhotos = [
+      "https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?w=800&q=80",
+      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80",
+    ];
+    
+    if (devMode === "loading") {
+      setPhotos(testPhotos);
+      setAppState("analyzing");
+    } else if (devMode === "results") {
+      setPhotos(testPhotos);
+      setResults(mockResults);
+      setAppState("results");
+    }
+  }, [searchParams]);
 
   // Photo capture handler
   const handleCapture = useCallback((imageData: string) => {
@@ -145,7 +231,9 @@ export default function Home() {
 
       {/* Header */}
       <header className="relative">
-        <div className="px-5 pt-20 pb-6 safe-top">
+        <div className="px-5 pt-safe-top pb-6">
+          {/* Extra top padding for notch/status bar */}
+          <div className="h-12" />
           <div className="max-w-lg mx-auto">
             <motion.div 
               initial={{ opacity: 0, y: -10 }}

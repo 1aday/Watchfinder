@@ -434,6 +434,7 @@ export interface WatchPhotoExtraction {
     brand: string;
     model_name: string;
     collection_family: string;
+    sub_model_variant?: string;
     reference_number: string;
     dial_variant: string;
     bezel_variant: string;
