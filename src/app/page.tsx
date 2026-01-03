@@ -17,7 +17,7 @@
  * expert in your pocket.
  */
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { CameraCapture } from "@/components/camera-capture";
@@ -108,7 +108,7 @@ const mockResults: WatchPhotoExtraction = {
   preliminary_assessment: "Based on the provided images, this Rolex Submariner Date 126610LN presents with multiple authentic markers and no immediate red flags. The watch appears to be in excellent condition with minimal wear. Professional authentication with movement inspection is recommended for final verification."
 };
 
-export default function Home() {
+function HomeContent() {
   const searchParams = useSearchParams();
   const [appState, setAppState] = useState<AppState>("welcome");
   const [photos, setPhotos] = useState<string[]>([]);
@@ -512,5 +512,19 @@ export default function Home() {
       {/* Bottom safe area spacer */}
       <div className="h-8 safe-bottom" />
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20 animate-pulse">
+          <WatchIcon size={22} className="text-primary-foreground" />
+        </div>
+      </main>
+    }>
+      <HomeContent />
+    </Suspense>
   );
 }

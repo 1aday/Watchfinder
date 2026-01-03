@@ -29,26 +29,49 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "WatchFinder",
-  description: "AI-powered watch authentication. Capture. Analyze. Authenticate.",
+  title: "Watch Finder AI",
+  description: "AI-powered watch authentication and analysis. Capture photos, get instant AI analysis, and authenticate luxury timepieces with confidence.",
   keywords: [
     "watch authentication",
     "luxury watches", 
     "Rolex authentication",
     "watch verification",
     "AI watch analysis",
+    "watch identifier",
+    "timepiece authentication",
   ],
-  authors: [{ name: "Watchfinder" }],
+  authors: [{ name: "Watch Finder AI" }],
+  creator: "Watch Finder AI",
+  metadataBase: new URL("https://watchfinder.ai"),
   openGraph: {
-    title: "Watchfinder",
-    description: "AI-powered watch authentication",
+    title: "Watch Finder AI",
+    description: "AI-powered watch authentication and analysis. Capture photos, get instant AI analysis, and authenticate luxury timepieces with confidence.",
     type: "website",
-    siteName: "Watchfinder",
+    siteName: "Watch Finder AI",
+    locale: "en_US",
+    images: [
+      {
+        url: "/opengraph.png",
+        width: 1200,
+        height: 630,
+        alt: "Watch Finder AI - AI-Powered Watch Analysis",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Watch Finder AI",
+    description: "AI-powered watch authentication and analysis. Capture photos, get instant AI analysis, and authenticate luxury timepieces.",
+    images: ["/opengraph.png"],
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Watchfinder",
+    title: "Watch Finder AI",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
