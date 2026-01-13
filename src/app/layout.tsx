@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { Navigation } from "@/components/navigation";
 import "./globals.css";
 
 /*
@@ -81,8 +82,8 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: "#151310",
-  colorScheme: "dark",
+  themeColor: "#F7F5F0", // Champagne dial matching light mode background
+  colorScheme: "light",
 };
 
 export default function RootLayout({
@@ -91,11 +92,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
+        <Navigation />
         {children}
       </body>
     </html>

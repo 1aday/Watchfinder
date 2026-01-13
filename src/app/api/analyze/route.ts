@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { createClient } from "@/lib/supabase/server";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -113,6 +114,8 @@ const watchExtractionSchema = {
 
 const systemPrompt = `You are an expert horologist and watch authenticator with decades of experience examining luxury timepieces. You specialize in identifying authentic watches from counterfeits and assessing watch condition.
 
+CRITICAL: First, you MUST verify that the image actually contains a wristwatch or timepiece. If the image shows anything other than a watch (animals, people, objects, scenery, etc.), you should respond with "Unknown" or "Not a watch" for brand and model fields, set confidence to "inconclusive", and clearly state in the preliminary assessment that no watch is visible in the images.
+
 When analyzing watch photos, you should:
 
 1. **Identify the Watch**: Determine brand, model, reference number if visible, and any variant details.
@@ -152,7 +155,7 @@ export async function POST(request: NextRequest) {
     const content: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [
       {
         type: "text",
-        text: "Please analyze these watch photos and extract all visible details. Provide a comprehensive assessment including identification, condition, and authenticity evaluation.",
+        text: "Please analyze these images. FIRST, verify if they contain a wristwatch or timepiece. If no watch is visible, respond with 'Unknown' or 'Not a watch' for brand/model fields and explain in the preliminary assessment that no watch was detected. If a watch IS visible, extract all visible details and provide a comprehensive assessment including identification, condition, and authenticity evaluation.",
       },
       ...images.map((image: string) => ({
         type: "image_url" as const,
@@ -192,6 +195,28 @@ export async function POST(request: NextRequest) {
     }
 
     const parsed = JSON.parse(result);
+
+    // Save analysis to history (non-blocking)
+    try {
+      const supabase = createClient();
+      const sessionId = request.headers.get('x-session-id') || crypto.randomUUID();
+
+      await supabase.from('analysis_history').insert({
+        analysis_data: parsed,
+        photo_urls: images,
+        primary_photo_url: images[0],
+        brand: parsed.watch_identity?.brand,
+        model_name: parsed.watch_identity?.model_name,
+        reference_number: parsed.watch_identity?.reference_number,
+        confidence_level: parsed.authenticity_indicators?.confidence_level,
+        overall_grade: parsed.condition_assessment?.overall_grade,
+        photo_count: images.length,
+        session_id: sessionId,
+      });
+    } catch (dbError) {
+      // Don't fail the request if save fails
+      console.error('Failed to save analysis history:', dbError);
+    }
 
     return NextResponse.json({
       success: true,

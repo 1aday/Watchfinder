@@ -485,3 +485,147 @@ export interface WatchPhotoExtraction {
   preliminary_assessment: string;
 }
 
+// ============================================================================
+// REFERENCE LIBRARY TYPES
+// ============================================================================
+
+// Database record for a reference watch in the library
+export interface ReferenceWatch {
+  id: string;
+  created_at: string;
+  updated_at: string;
+
+  // Identity
+  brand: string;
+  model_name: string;
+  collection_family?: string;
+  reference_number: string;
+
+  // Full data stored as JSONB
+  watch_identity: WatchPhotoExtraction['watch_identity'];
+  physical_observations: WatchPhotoExtraction['physical_observations'];
+  authenticity_indicators: WatchPhotoExtraction['authenticity_indicators'];
+  condition_baseline?: WatchPhotoExtraction['condition_assessment'];
+
+  // Extracted fields for fast queries
+  case_material?: string;
+  dial_color?: string;
+  bracelet_type?: string;
+
+  // Metadata
+  verification_status: 'pending' | 'verified' | 'needs_review' | 'deprecated';
+  verified_by?: string;
+  verified_at?: string;
+  source?: string; // e.g., "manufacturer_docs", "expert_verified"
+  notes?: string;
+}
+
+// Reference watch image metadata
+export interface ReferenceWatchImage {
+  id: string;
+  reference_watch_id: string;
+  created_at: string;
+  angle_tag: string; // e.g., "dial_front", "caseback", "crown_closeup"
+  storage_path: string;
+  storage_url: string;
+  file_size_bytes?: number;
+  mime_type?: string;
+  width?: number;
+  height?: number;
+  quality_score?: number; // 0-1
+  display_order: number;
+  is_primary: boolean;
+}
+
+// Match result from fuzzy matching algorithm
+export interface MatchResult {
+  reference_watch: ReferenceWatch;
+  match_score: number; // 0-100
+  component_scores: {
+    brand: number; // 0-100
+    model: number; // 0-100
+    reference: number; // 0-100
+    physical: number; // 0-100
+  };
+  confidence_tier: 'excellent' | 'good' | 'possible' | 'poor';
+  discrepancies: FieldDiscrepancy[];
+}
+
+// Field discrepancy between AI analysis and reference
+export enum DiscrepancySeverity {
+  EXACT_MATCH = 'exact_match',
+  MINOR_DIFF = 'minor_diff',      // Acceptable variation
+  MAJOR_DIFF = 'major_diff',      // Significant concern
+  MISSING_DATA = 'missing_data',  // Cannot compare
+  CRITICAL = 'critical',          // Authentication concern
+}
+
+export enum FieldImportance {
+  CRITICAL = 'critical',     // Brand, model, reference number
+  HIGH = 'high',            // Case material, dial, movement
+  MEDIUM = 'medium',        // Bezel, bracelet, crystal
+  LOW = 'low',              // Clasp, crown, finish details
+  OPTIONAL = 'optional',    // Serial, year, condition
+}
+
+export interface FieldDiscrepancy {
+  field_path: string;           // e.g., "watch_identity.brand"
+  field_label: string;          // Human-readable "Brand"
+  importance: FieldImportance;
+  severity: DiscrepancySeverity;
+  ai_value: any;
+  reference_value: any;
+  similarity_score?: number;    // 0-100
+  explanation: string;
+}
+
+// Analysis comparison record (stored in database for audit trail)
+export interface AnalysisComparison {
+  id: string;
+  created_at: string;
+  reference_watch_id?: string;
+  ai_analysis: WatchPhotoExtraction;
+  uploaded_images_urls?: string[];
+  match_score?: number;
+  brand_match_score?: number;
+  model_match_score?: number;
+  reference_match_score?: number;
+  discrepancies?: FieldDiscrepancy[];
+  discrepancy_summary?: string;
+  user_confirmed_match?: boolean;
+  user_notes?: string;
+  session_id?: string;
+  user_id?: string;
+}
+
+// Reference watch with aggregated stats (from view)
+export interface ReferenceWatchWithStats extends ReferenceWatch {
+  image_count: number;
+  primary_image_url?: string;
+  comparison_count: number;
+  avg_confirmed_match_score?: number;
+  confirmed_match_count: number;
+}
+
+// Matching configuration
+export interface MatchingConfig {
+  weights: {
+    brand_exact: number;      // 0-1, typically 0.40
+    model_fuzzy: number;      // 0-1, typically 0.35
+    reference_fuzzy: number;  // 0-1, typically 0.15
+    physical_match: number;   // 0-1, typically 0.10
+  };
+  thresholds: {
+    excellent_match: number;  // typically 90
+    good_match: number;       // typically 75
+    possible_match: number;   // typically 60
+    poor_match: number;       // typically 60
+  };
+  string_similarity: {
+    brand_min: number;        // typically 0.85
+    model_min: number;        // typically 0.70
+    reference_min: number;    // typically 0.80
+  };
+  max_results: number;        // typically 5
+}
+

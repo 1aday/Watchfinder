@@ -259,3 +259,4 @@ export function PhotoGuideMinimal({ capturedCount }: { capturedCount: number }) 
   );
 }
 
+
