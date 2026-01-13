@@ -46,6 +46,24 @@ export function ReferenceTable({
   const columns = useMemo<ColumnDef<ReferenceWatchWithStats>[]>(
     () => [
       {
+        id: "image",
+        header: "Image",
+        cell: ({ row }) => {
+          const imageUrl = row.original.primary_image_url;
+          return imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={`${row.original.brand} ${row.original.model_name}`}
+              className="w-12 h-12 object-cover rounded border"
+            />
+          ) : (
+            <div className="w-12 h-12 bg-muted rounded border flex items-center justify-center">
+              <span className="text-xs text-muted-foreground">-</span>
+            </div>
+          );
+        },
+      },
+      {
         accessorKey: "brand",
         header: "Brand",
         cell: ({ row }) => (

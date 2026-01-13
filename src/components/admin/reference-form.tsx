@@ -60,7 +60,7 @@ interface ReferenceFormData {
 interface ReferenceFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: Partial<ReferenceFormData>) => Promise<void>;
+  onSubmit: (data: Partial<ReferenceFormData>) => Promise<any>;
   initialData?: Partial<ReferenceFormData>;
   mode: "create" | "edit";
 }
@@ -204,25 +204,36 @@ export function ReferenceForm({
     setIsSubmitting(true);
 
     try {
-      // First save the reference watch
-      await onSubmit(formData);
+      // First save the reference watch and get the returned reference
+      const savedReference = await onSubmit(formData);
 
-      // If we have images and an ID, upload them
-      if (uploadedImages.length > 0 && initialData?.id) {
+      // If we have images and a reference ID, upload them
+      const referenceId = savedReference?.id || initialData?.id;
+      if (uploadedImages.length > 0 && referenceId) {
+        setIsUploading(true);
         for (const image of uploadedImages) {
           if (image.file) {
-            const formData = new FormData();
-            formData.append("file", image.file);
-            formData.append("referenceWatchId", initialData.id);
-            formData.append("angleTag", image.angleTag);
-            formData.append("isPrimary", String(image.isPrimary));
+            const uploadFormData = new FormData();
+            uploadFormData.append("file", image.file);
+            uploadFormData.append("referenceWatchId", referenceId);
+            uploadFormData.append("angleTag", image.angleTag);
+            uploadFormData.append("isPrimary", String(image.isPrimary));
 
-            await fetch("/api/storage/upload", {
-              method: "POST",
-              body: formData,
-            });
+            try {
+              const response = await fetch("/api/storage/upload", {
+                method: "POST",
+                body: uploadFormData,
+              });
+
+              if (!response.ok) {
+                console.error("Failed to upload image:", image.angleTag);
+              }
+            } catch (uploadError) {
+              console.error("Error uploading image:", uploadError);
+            }
           }
         }
+        setIsUploading(false);
       }
 
       onOpenChange(false);

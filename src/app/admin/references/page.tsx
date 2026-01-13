@@ -8,6 +8,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { useAdminStore } from "@/lib/stores/admin-store";
 import { ReferenceTable } from "@/components/admin/reference-table";
 import { ReferenceForm } from "@/components/admin/reference-form";
@@ -47,7 +48,7 @@ export default function AdminReferencesPage() {
     setFormOpen(true);
   };
 
-  const handleSubmit = async (data: Partial<ReferenceWatch>) => {
+  const handleSubmit = async (data: Partial<ReferenceWatch>): Promise<ReferenceWatch | undefined> => {
     try {
       const url = editingReference
         ? `/api/references/${editingReference.id}`
@@ -64,12 +65,19 @@ export default function AdminReferencesPage() {
         throw new Error("Failed to save reference");
       }
 
+      const result = await response.json();
+      const savedReference = result.data || result;
+
       // Reload the references
       await loadReferences();
+      toast.success(editingReference ? "Reference updated successfully!" : "Reference created successfully!");
       setFormOpen(false);
+
+      return savedReference;
     } catch (error) {
       console.error("Error saving reference:", error);
-      alert("Failed to save reference. Please try again.");
+      toast.error("Failed to save reference. Please try again.");
+      return undefined;
     }
   };
 
@@ -85,7 +93,7 @@ export default function AdminReferencesPage() {
           </p>
         </div>
         <Link href="/admin/references/new">
-          <Button className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 shadow-lg shadow-blue-500/25">
+          <Button className="bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity shadow-lg shadow-primary/20">
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
