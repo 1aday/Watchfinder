@@ -357,19 +357,32 @@ export function CameraCapture({ onCapture, onClose, photoCount }: CameraCaptureP
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-3">
+                <div className="space-y-3">
                   <button
                     onClick={() => setShowGuidance(false)}
-                    className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-colors shadow-lg shadow-blue-500/30"
+                    className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-colors shadow-lg shadow-blue-500/30"
                   >
-                    Got it, let's go!
+                    {photoCount === 0 ? "Got it, let's go!" : "Continue Taking Photos"}
                   </button>
+
+                  {photoCount >= 1 && (
+                    <button
+                      onClick={onClose}
+                      className="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl font-semibold transition-colors shadow-lg shadow-green-500/30 flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Analyze with {photoCount} Photo{photoCount !== 1 ? 's' : ''}
+                    </button>
+                  )}
+
                   {photoCount === 0 && (
                     <button
                       onClick={onClose}
-                      className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium transition-colors border border-white/10"
+                      className="w-full px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium transition-colors border border-white/10"
                     >
-                      Skip
+                      Skip Camera
                     </button>
                   )}
                 </div>
@@ -403,7 +416,26 @@ export function CameraCapture({ onCapture, onClose, photoCount }: CameraCaptureP
 
       {/* Bottom controls */}
       <div className="bg-black px-6 pt-6 pb-8 safe-bottom">
-        <div className="flex items-center justify-center gap-8">
+        <div className="flex items-center justify-center gap-4">
+          {/* Done button - appears after first photo */}
+          <AnimatePresence>
+            {photoCount >= 1 && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.9, x: 20 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.9, x: 20 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={onClose}
+                className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-full font-semibold shadow-lg shadow-green-500/30 flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Done ({photoCount})
+              </motion.button>
+            )}
+          </AnimatePresence>
+
           {/* Capture button */}
           <motion.button
             whileTap={{ scale: 0.95 }}
@@ -414,8 +446,8 @@ export function CameraCapture({ onCapture, onClose, photoCount }: CameraCaptureP
             {/* Outer ring */}
             <div className={`
               w-20 h-20 rounded-full border-4 transition-all duration-200
-              ${isReady 
-                ? "border-white group-active:border-white/70" 
+              ${isReady
+                ? "border-white group-active:border-white/70"
                 : "border-white/30"
               }
             `}>
@@ -427,14 +459,14 @@ export function CameraCapture({ onCapture, onClose, photoCount }: CameraCaptureP
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 className={`
                   absolute inset-1.5 rounded-full transition-colors duration-200
-                  ${isReady 
-                    ? "bg-white group-active:bg-white/90" 
+                  ${isReady
+                    ? "bg-white group-active:bg-white/90"
                     : "bg-white/30"
                   }
                 `}
               />
             </div>
-            
+
             {/* Pulse animation when ready */}
             {isReady && !isCapturing && (
               <motion.div
@@ -454,7 +486,9 @@ export function CameraCapture({ onCapture, onClose, photoCount }: CameraCaptureP
           transition={{ delay: 0.5 }}
           className="text-center text-white/40 text-xs mt-4"
         >
-          Tap to capture · {photoCount > 0 ? `${photoCount} photo${photoCount !== 1 ? 's' : ''} taken` : 'Position watch in frame'}
+          {photoCount === 0 && 'Position watch in frame and tap to capture'}
+          {photoCount === 1 && 'Take more angles or tap Done to analyze'}
+          {photoCount >= 2 && `${photoCount} photos captured · Tap Done when ready`}
         </motion.p>
       </div>
 
