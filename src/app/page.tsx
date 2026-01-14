@@ -1,5 +1,5 @@
-import { WatchAnalyzer } from "@/components/watch-analyzer";
+import { LandingPage } from "@/components/landing-page";
 
 export default function Home() {
-  return <WatchAnalyzer />;
+  return <LandingPage />;
 }
