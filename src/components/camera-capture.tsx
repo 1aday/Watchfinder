@@ -34,6 +34,7 @@ export function CameraCapture({ onCapture, onClose, photoCount }: CameraCaptureP
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
   const [isCapturing, setIsCapturing] = useState(false);
   const [showFlash, setShowFlash] = useState(false);
+  const [showGuidance, setShowGuidance] = useState(photoCount < 3);
 
   // Current suggested angle
   const currentAngle = REQUIRED_ANGLES[Math.min(photoCount, REQUIRED_ANGLES.length - 1)];
@@ -103,14 +104,19 @@ export function CameraCapture({ onCapture, onClose, photoCount }: CameraCaptureP
 
     // High quality JPEG
     const imageData = canvas.toDataURL("image/jpeg", 0.92);
-    
+
     // Brief pause to let flash animation complete
     await new Promise((resolve) => setTimeout(resolve, 150));
-    
+
     setShowFlash(false);
     setIsCapturing(false);
     onCapture(imageData);
-  }, [isCapturing, onCapture]);
+
+    // Show guidance for next photo if we're still in the first 3
+    if (photoCount < 2) {
+      setTimeout(() => setShowGuidance(true), 500);
+    }
+  }, [isCapturing, onCapture, photoCount]);
 
   const switchCamera = useCallback(() => {
     // Haptic feedback
@@ -187,7 +193,21 @@ export function CameraCapture({ onCapture, onClose, photoCount }: CameraCaptureP
             </motion.button>
 
             {/* Photo count indicator */}
-            <PhotoGuideMinimal capturedCount={photoCount} />
+            <div className="flex items-center gap-2">
+              <PhotoGuideMinimal capturedCount={photoCount} />
+              {!showGuidance && photoCount < 3 && (
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setShowGuidance(true)}
+                  className="w-8 h-8 rounded-full bg-blue-500/20 backdrop-blur-md flex items-center justify-center border border-blue-500/30"
+                  title="Show photo guide"
+                >
+                  <svg className="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </motion.button>
+              )}
+            </div>
 
             {/* Camera flip button */}
             <motion.button
@@ -252,7 +272,7 @@ export function CameraCapture({ onCapture, onClose, photoCount }: CameraCaptureP
         </div>
 
         {/* Angle suggestion - bottom hint */}
-        <motion.div 
+        <motion.div
           key={currentAngle?.id}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -262,6 +282,101 @@ export function CameraCapture({ onCapture, onClose, photoCount }: CameraCaptureP
             {currentAngle?.description || "Capture any angle"}
           </span>
         </motion.div>
+
+        {/* Enhanced Step-by-Step Guidance Overlay */}
+        <AnimatePresence>
+          {showGuidance && photoCount < 3 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-6"
+            >
+              <div className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl rounded-3xl p-8 max-w-md border border-white/10 shadow-2xl">
+                {/* Progress indicator */}
+                <div className="flex items-center justify-center gap-2 mb-6">
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        i < photoCount ? 'w-8 bg-blue-500' : 'w-6 bg-white/20'
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                {/* Step number */}
+                <div className="text-center mb-4">
+                  <span className="inline-block px-4 py-1 bg-blue-500/20 border border-blue-500/30 rounded-full text-blue-300 text-sm font-medium">
+                    Step {photoCount + 1} of 3
+                  </span>
+                </div>
+
+                {/* Main instruction */}
+                <h3 className="text-2xl font-bold text-white text-center mb-3">
+                  {currentAngle?.label === "Dial" && "Capture the Dial"}
+                  {currentAngle?.label === "Crown" && "Show the Crown Side"}
+                  {currentAngle?.label === "Caseback" && "Photograph the Caseback"}
+                </h3>
+
+                <p className="text-white/70 text-center mb-6 leading-relaxed">
+                  {currentAngle?.label === "Dial" && "Position your watch face-up with the dial clearly visible. Center it in the frame for best results."}
+                  {currentAngle?.label === "Crown" && "Rotate your watch to show the crown and side profile. This helps identify the model."}
+                  {currentAngle?.label === "Caseback" && "Flip your watch over to capture the caseback. Serial numbers and engravings are often here."}
+                </p>
+
+                {/* Visual tips */}
+                <div className="bg-white/5 rounded-2xl p-4 mb-6">
+                  <div className="flex items-start gap-3 mb-3">
+                    <svg className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <div>
+                      <p className="text-white/90 text-sm font-medium">Good lighting</p>
+                      <p className="text-white/50 text-xs">Natural light works best</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 mb-3">
+                    <svg className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <div>
+                      <p className="text-white/90 text-sm font-medium">Fill the frame</p>
+                      <p className="text-white/50 text-xs">Get close for detail</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <div>
+                      <p className="text-white/90 text-sm font-medium">Stay steady</p>
+                      <p className="text-white/50 text-xs">Avoid blurry shots</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowGuidance(false)}
+                    className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-colors shadow-lg shadow-blue-500/30"
+                  >
+                    Got it, let's go!
+                  </button>
+                  {photoCount === 0 && (
+                    <button
+                      onClick={onClose}
+                      className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium transition-colors border border-white/10"
+                    >
+                      Skip
+                    </button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Error state */}
         <AnimatePresence>
