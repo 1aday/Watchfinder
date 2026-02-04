@@ -17,9 +17,9 @@ import type {
 export const DEFAULT_MATCHING_CONFIG: MatchingConfig = {
   weights: {
     brand_exact: 0.40,      // 40% - Brand must be close
-    model_fuzzy: 0.35,      // 35% - Model similarity
+    model_fuzzy: 0.40,      // 40% - Model similarity (increased from 35%)
     reference_fuzzy: 0.15,  // 15% - Reference number
-    physical_match: 0.10,   // 10% - Physical characteristics
+    physical_match: 0.05,   // 5% - Physical characteristics (reduced from 10%)
   },
   thresholds: {
     excellent_match: 85,    // >85% - Very confident match
@@ -28,8 +28,8 @@ export const DEFAULT_MATCHING_CONFIG: MatchingConfig = {
     poor_match: 40,         // <40% - Likely different watch
   },
   string_similarity: {
-    brand_min: 0.65,        // Brand must be 65%+ similar (more permissive)
-    model_min: 0.45,        // Model 45%+ similar (very permissive for discovery)
+    brand_min: 0.65,        // Brand must be 65%+ similar
+    model_min: 0.65,        // Model 65%+ similar (increased from 0.45 to match brand)
     reference_min: 0.70,    // Reference number 70%+ similar
   },
   max_results: 5,           // Return top 5 matches
@@ -229,12 +229,15 @@ export function getConfidenceTier(
 
 /**
  * Check if reference meets minimum matching criteria
+ * BOTH brand AND model must meet minimum thresholds to prevent cross-model matches
  */
 export function meetsMinimumCriteria(
   brandScore: number,
   modelScore: number,
   config: MatchingConfig = DEFAULT_MATCHING_CONFIG
 ): boolean {
+  // Require BOTH brand (≥65%) AND model (≥65%) to pass
+  // This prevents Rolex Submariner from matching Rolex Yachtmaster
   return (
     brandScore >= config.string_similarity.brand_min * 100 &&
     modelScore >= config.string_similarity.model_min * 100

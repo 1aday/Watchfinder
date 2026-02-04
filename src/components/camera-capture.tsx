@@ -18,6 +18,7 @@ import { useCallback, useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CloseIcon, FlipCameraIcon } from "./icons";
 import { PhotoGuideMinimal, REQUIRED_ANGLES } from "./photo-guide";
+import { cn } from "@/lib/utils";
 
 interface CameraCaptureProps {
   onCapture: (imageData: string) => void;
@@ -35,6 +36,9 @@ export function CameraCapture({ onCapture, onClose, photoCount }: CameraCaptureP
   const [isCapturing, setIsCapturing] = useState(false);
   const [showFlash, setShowFlash] = useState(false);
   const [showGuidance, setShowGuidance] = useState(photoCount < 3);
+  const [zoom, setZoom] = useState(1);
+  const [torchEnabled, setTorchEnabled] = useState(false);
+  const [focusPoint, setFocusPoint] = useState<{x: number, y: number} | null>(null);
 
   // Current suggested angle
   const currentAngle = REQUIRED_ANGLES[Math.min(photoCount, REQUIRED_ANGLES.length - 1)];
@@ -127,10 +131,80 @@ export function CameraCapture({ onCapture, onClose, photoCount }: CameraCaptureP
     setFacingMode((prev) => (prev === "environment" ? "user" : "environment"));
   }, [stopCamera]);
 
+  const toggleTorch = useCallback(async () => {
+    if (!stream) return;
+
+    const track = stream.getVideoTracks()[0];
+    const capabilities = track.getCapabilities() as any;
+
+    if (capabilities.torch) {
+      try {
+        await track.applyConstraints({
+          // @ts-ignore
+          advanced: [{ torch: !torchEnabled }]
+        });
+        setTorchEnabled(!torchEnabled);
+
+        // Haptic feedback
+        if (navigator.vibrate) {
+          navigator.vibrate(5);
+        }
+      } catch (err) {
+        console.error('Torch error:', err);
+      }
+    }
+  }, [stream, torchEnabled]);
+
+  const handleTapToFocus = useCallback(async (e: React.TouchEvent | React.MouseEvent) => {
+    if (!stream) return;
+
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+
+    setFocusPoint({ x, y });
+
+    const track = stream.getVideoTracks()[0];
+    const capabilities = track.getCapabilities() as any;
+
+    if (capabilities.focusMode) {
+      try {
+        await track.applyConstraints({
+          // @ts-ignore
+          advanced: [{ focusMode: 'single-shot' }]
+        });
+      } catch (err) {
+        console.error('Focus error:', err);
+      }
+    }
+
+    // Clear focus point after 2s
+    setTimeout(() => setFocusPoint(null), 2000);
+  }, [stream]);
+
   const handleClose = useCallback(() => {
     stopCamera();
     onClose();
   }, [stopCamera, onClose]);
+
+  // Apply zoom to video track
+  useEffect(() => {
+    if (!stream) return;
+
+    const track = stream.getVideoTracks()[0];
+    const capabilities = track.getCapabilities() as any;
+
+    if (capabilities.zoom) {
+      track.applyConstraints({
+        // @ts-ignore
+        advanced: [{ zoom: zoom }]
+      }).catch((err) => {
+        console.error('Zoom error:', err);
+      });
+    }
+  }, [zoom, stream]);
 
   // Initialize camera
   useEffect(() => {
@@ -159,6 +233,8 @@ export function CameraCapture({ onCapture, onClose, photoCount }: CameraCaptureP
           playsInline
           muted
           className="absolute inset-0 w-full h-full object-cover"
+          onClick={handleTapToFocus}
+          onTouchStart={handleTapToFocus}
         />
 
         {/* Capture flash effect */}
@@ -219,6 +295,88 @@ export function CameraCapture({ onCapture, onClose, photoCount }: CameraCaptureP
             </motion.button>
           </div>
         </div>
+
+        {/* Zoom slider (right side) */}
+        <div className="absolute top-20 right-4 flex flex-col gap-2">
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setZoom(prev => Math.min(prev + 0.5, 3))}
+            disabled={zoom >= 3}
+            className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center disabled:opacity-50"
+          >
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </motion.button>
+
+          <div className="h-24 w-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center">
+            <div
+              className="w-1 bg-white rounded-full transition-all"
+              style={{ height: `${((zoom - 1) / 2) * 80}%` }}
+            />
+          </div>
+
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setZoom(prev => Math.max(prev - 0.5, 1))}
+            disabled={zoom <= 1}
+            className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center disabled:opacity-50"
+          >
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+            </svg>
+          </motion.button>
+
+          {/* Zoom level indicator */}
+          <div className="text-center text-white/70 text-xs font-medium mt-1">
+            {zoom.toFixed(1)}x
+          </div>
+        </div>
+
+        {/* Torch toggle (top right, below camera flip) */}
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={toggleTorch}
+          className={cn(
+            "absolute top-16 right-4 w-10 h-10 rounded-full backdrop-blur-md flex items-center justify-center transition-colors",
+            torchEnabled
+              ? "bg-yellow-500/30 border border-yellow-500/50"
+              : "bg-white/10"
+          )}
+        >
+          <svg
+            className={cn("w-5 h-5 transition-colors", torchEnabled ? "text-yellow-300" : "text-white")}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+            />
+          </svg>
+        </motion.button>
+
+        {/* Focus point indicator */}
+        <AnimatePresence>
+          {focusPoint && (
+            <motion.div
+              className="absolute w-20 h-20 border-2 border-yellow-400 rounded-full pointer-events-none"
+              style={{ left: focusPoint.x - 40, top: focusPoint.y - 40 }}
+              initial={{ scale: 1.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-1 h-full bg-yellow-400/50" />
+                <div className="w-full h-1 bg-yellow-400/50 absolute" />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Center alignment guide - watch-inspired circle */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">

@@ -37,11 +37,12 @@ export async function POST(request: NextRequest) {
 
     const supabase = createClient();
 
-    // Step 1: Fast database filter using trigram similarity on brand
-    const { data: candidates, error: searchError } = await supabase
+    // Step 1: Use RPC but will apply stricter filtering in-memory
+    // Get candidates by brand first, then filter by model in Step 1b
+    const { data: rawCandidates, error: searchError } = await supabase
       .rpc('search_references_by_brand', {
         search_brand: analysis.watch_identity.brand,
-        similarity_threshold: 0.85,
+        similarity_threshold: 0.75,  // Slightly stricter than before
         result_limit: 50,
       });
 
@@ -53,12 +54,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!candidates || candidates.length === 0) {
+    if (!rawCandidates || rawCandidates.length === 0) {
       return NextResponse.json({
         success: true,
         matches: [],
         total_found: 0,
         message: 'No matching references found in library',
+      });
+    }
+
+    // Step 1b: Apply stricter in-memory filtering to require BOTH brand and model similarity
+    const { jaroWinklerSimilarity } = await import('@/lib/matching/fuzzy-matcher');
+    const candidates = rawCandidates.filter((ref: ReferenceWatch) => {
+      const brandSim = jaroWinklerSimilarity(
+        analysis.watch_identity.brand,
+        ref.brand
+      );
+      const modelSim = jaroWinklerSimilarity(
+        analysis.watch_identity.model_name,
+        ref.model_name
+      );
+
+      // Require BOTH brand AND model to meet minimum thresholds
+      const meetsThreshold = brandSim >= 0.65 && modelSim >= 0.50;
+
+      if (!meetsThreshold) {
+        console.log(`🚫 Pre-filtered: ${ref.brand} ${ref.model_name} (brand: ${(brandSim * 100).toFixed(1)}%, model: ${(modelSim * 100).toFixed(1)}%)`);
+      }
+
+      return meetsThreshold;
+    });
+
+    if (candidates.length === 0) {
+      return NextResponse.json({
+        success: true,
+        matches: [],
+        total_found: 0,
+        message: 'No matching references found in library (after filtering)',
+        total_candidates_scanned: rawCandidates.length,
       });
     }
 

@@ -102,7 +102,7 @@ export function AnalysisLoading({ photos }: AnalysisLoadingProps) {
 
       <div className="relative space-y-6">
         {/* Large Watch Image with Scanning Effect */}
-        <div className="relative mx-auto w-full max-w-[280px] aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-card to-card/50 border border-border">
+        <div className="relative mx-auto w-full max-w-[500px] aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-card to-card/50 border border-border shadow-2xl">
           {/* Watch Image */}
           <Image
             src={photos[0]}

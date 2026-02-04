@@ -19,6 +19,36 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
+        luxury: cn(
+          "bg-gradient-to-br from-primary to-accent",
+          "text-primary-foreground font-medium",
+          "shadow-lg shadow-primary/30",
+          "hover:shadow-xl hover:shadow-primary/40",
+          "hover:scale-[1.02]",
+          "transition-all duration-300",
+          "relative overflow-hidden",
+          "before:absolute before:inset-0",
+          "before:bg-gradient-to-r before:from-transparent",
+          "before:via-white/20 before:to-transparent",
+          "before:translate-x-[-200%] hover:before:translate-x-[200%]",
+          "before:transition-transform before:duration-700"
+        ),
+        platinum: cn(
+          "bg-gradient-to-br from-slate-100 to-slate-200",
+          "dark:from-slate-700 dark:to-slate-800",
+          "text-slate-900 dark:text-slate-100 font-medium",
+          "border border-slate-300 dark:border-slate-600",
+          "shadow-sm",
+          "hover:shadow-md hover:border-slate-400 dark:hover:border-slate-500",
+          "transition-all duration-300"
+        ),
+        glass: cn(
+          "bg-background/10 backdrop-blur-md",
+          "border border-border/20",
+          "text-foreground",
+          "hover:bg-background/20",
+          "transition-all duration-300"
+        ),
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

@@ -13,6 +13,14 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { WatchPhotoExtraction } from "@/types/watch-schema";
 
 interface AnalysisHistoryItem {
@@ -47,12 +55,30 @@ export default function HistoryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Filters
+  const [brandSearch, setBrandSearch] = useState("");
+  const [confidenceFilter, setConfidenceFilter] = useState<string>("all");
+
   const loadHistory = async (page: number = 1) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(`/api/history?page=${page}&limit=12`);
+      // Build query params
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: "12",
+      });
+
+      if (brandSearch) {
+        params.append("brand", brandSearch);
+      }
+
+      if (confidenceFilter && confidenceFilter !== "all") {
+        params.append("confidence", confidenceFilter);
+      }
+
+      const response = await fetch(`/api/history?${params.toString()}`);
       if (!response.ok) throw new Error("Failed to load history");
 
       const result = await response.json();
@@ -68,7 +94,15 @@ export default function HistoryPage() {
 
   useEffect(() => {
     loadHistory();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brandSearch, confidenceFilter]);
+
+  const handleClearFilters = () => {
+    setBrandSearch("");
+    setConfidenceFilter("all");
+  };
+
+  const hasActiveFilters = brandSearch || confidenceFilter !== "all";
 
   const getConfidenceColor = (level: string) => {
     switch (level?.toLowerCase()) {
@@ -86,7 +120,7 @@ export default function HistoryPage() {
   const getGradeColor = (grade: string) => {
     const g = grade?.toLowerCase();
     if (g === "mint" || g === "excellent") return "text-emerald-500";
-    if (g === "very_good" || g === "good") return "text-blue-500";
+    if (g === "very_good" || g === "good") return "text-primary";
     return "text-muted-foreground";
   };
 
@@ -101,6 +135,93 @@ export default function HistoryPage() {
             {pagination.total} watch{pagination.total !== 1 ? "es" : ""} analyzed
           </p>
         </div>
+
+        {/* Search & Filters */}
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Brand Search */}
+              <div className="flex-1">
+                <Input
+                  placeholder="Search by brand (e.g., Rolex, Omega)..."
+                  value={brandSearch}
+                  onChange={(e) => setBrandSearch(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Confidence Filter */}
+              <div className="w-full md:w-48">
+                <Select
+                  value={confidenceFilter}
+                  onValueChange={setConfidenceFilter}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Confidence Level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Confidence</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="low">Low</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Clear Filters Button */}
+              {hasActiveFilters && (
+                <Button
+                  variant="outline"
+                  onClick={handleClearFilters}
+                  className="whitespace-nowrap"
+                >
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                  Clear Filters
+                </Button>
+              )}
+            </div>
+
+            {/* Active Filters Display */}
+            {hasActiveFilters && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {brandSearch && (
+                  <Badge variant="secondary" className="gap-1">
+                    Brand: {brandSearch}
+                    <button
+                      onClick={() => setBrandSearch("")}
+                      className="ml-1 hover:text-destructive"
+                    >
+                      ×
+                    </button>
+                  </Badge>
+                )}
+                {confidenceFilter !== "all" && (
+                  <Badge variant="secondary" className="gap-1 capitalize">
+                    Confidence: {confidenceFilter}
+                    <button
+                      onClick={() => setConfidenceFilter("all")}
+                      className="ml-1 hover:text-destructive"
+                    >
+                      ×
+                    </button>
+                  </Badge>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Loading State */}
         {isLoading && (
@@ -151,7 +272,8 @@ export default function HistoryPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+                  <Link href={`/history/${analysis.id}`}>
+                    <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
                     {/* Image */}
                     <div className="relative aspect-square bg-gradient-to-br from-muted to-muted/50">
                       {analysis.primary_photo_url && (
@@ -224,6 +346,7 @@ export default function HistoryPage() {
                       </div>
                     </CardContent>
                   </Card>
+                  </Link>
                 </motion.div>
               ))}
             </motion.div>

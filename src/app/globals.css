@@ -130,6 +130,26 @@
   --sidebar-accent-foreground: oklch(0.20 0.010 65);
   --sidebar-border: oklch(0.88 0.010 75);
   --sidebar-ring: oklch(0.68 0.12 85);
+
+  /*
+   * Material-Based Color Tokens
+   * Inspired by luxury watch materials and finishes
+   */
+
+  /* Metal finishes - Watch case materials */
+  --brushed-steel: oklch(0.75 0.002 240);
+  --polished-steel: oklch(0.85 0.001 240);
+  --white-gold: oklch(0.88 0.008 90);
+  --platinum: oklch(0.82 0.002 260);
+
+  /* Gemstone accents - Subtle use for status indicators */
+  --sapphire: oklch(0.45 0.15 260);
+  --emerald: oklch(0.50 0.12 155);
+  --ruby: oklch(0.48 0.20 25);
+
+  /* Leather/textile - For secondary surfaces */
+  --black-leather: oklch(0.18 0.005 60);
+  --cognac-leather: oklch(0.42 0.08 40);
 }
 
 .dark {
@@ -194,10 +214,22 @@
   --sidebar-accent-foreground: oklch(0.93 0.008 80);
   --sidebar-border: oklch(0.22 0.005 60);
   --sidebar-ring: oklch(0.65 0.10 55);
+
+  /* Material-Based Color Tokens (Dark Mode) */
+  --brushed-steel: oklch(0.65 0.002 240);
+  --polished-steel: oklch(0.75 0.001 240);
+  --white-gold: oklch(0.78 0.008 90);
+  --platinum: oklch(0.72 0.002 260);
+  --sapphire: oklch(0.55 0.15 260);
+  --emerald: oklch(0.60 0.12 155);
+  --ruby: oklch(0.58 0.20 25);
+  --black-leather: oklch(0.15 0.005 60);
+  --cognac-leather: oklch(0.52 0.08 40);
   
-  /* 
+  /*
    * Spacing System: 4px base, harmonious scale
    * Like the proportions of a well-designed watch dial
+   * Extended with fluid spacing for responsive layouts
    */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -211,10 +243,25 @@
   --space-16: 4rem;
   --space-20: 5rem;
   --space-24: 6rem;
+
+  /* Fluid spacing for responsive design */
+  --space-fluid-xs: clamp(0.5rem, 2vw, 0.75rem);
+  --space-fluid-sm: clamp(1rem, 3vw, 1.5rem);
+  --space-fluid-md: clamp(2rem, 5vw, 3rem);
+  --space-fluid-lg: clamp(3rem, 8vw, 5rem);
+  --space-fluid-xl: clamp(4rem, 12vw, 8rem);
+
+  /* Container max-widths - generous for luxury feel */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1536px;
   
-  /* 
+  /*
    * Typography Scale: Precise, confident hierarchy
    * Inspired by Rolex marketing materials
+   * Extended with fluid sizing for display text
    */
   --text-xs: 0.6875rem;
   --text-sm: 0.8125rem;
@@ -225,6 +272,9 @@
   --text-3xl: 1.875rem;
   --text-4xl: 2.25rem;
   --text-5xl: 3rem;
+  --text-6xl: clamp(3rem, 5vw, 3.75rem);
+  --text-7xl: clamp(3.75rem, 6vw, 4.5rem);
+  --text-8xl: clamp(4.5rem, 8vw, 6rem);
   
   /* Line heights - Generous for readability */
   --leading-none: 1;

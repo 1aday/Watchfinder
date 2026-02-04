@@ -1,20 +1,31 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Playfair_Display } from "next/font/google";
 import { Navigation } from "@/components/navigation";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 /*
  * Typography System — Jony Ive approach
- * 
+ *
+ * Display: Playfair Display — Elegant serif for headlines
+ *          Museum-quality sophistication, luxury brand aesthetic
+ *
  * Sans: Inter — Clean, highly legible, Swiss precision
  *       Chosen for its optical sizing and careful spacing
- * 
+ *
  * Mono: JetBrains Mono — Technical details, reference numbers
  *       The "tool watch" of typefaces - functional, precise
- * 
+ *
  * This combination evokes luxury watch marketing:
- * confident headlines, readable body, precise technical specs
+ * elegant display headlines, readable body, precise technical specs
  */
+
+const playfairDisplay = Playfair_Display({
+  variable: "--font-display",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700", "800", "900"],
+});
 
 const inter = Inter({
   variable: "--font-sans",
@@ -94,10 +105,22 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}
+        className={`${playfairDisplay.variable} ${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
         <Navigation />
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            classNames: {
+              toast: 'bg-card border-border shadow-lg',
+              title: 'text-foreground font-medium',
+              description: 'text-muted-foreground',
+              success: 'text-primary',
+              error: 'text-destructive',
+            },
+          }}
+        />
         {children}
       </body>
     </html>

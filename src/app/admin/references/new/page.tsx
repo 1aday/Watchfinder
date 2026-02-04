@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -199,10 +200,11 @@ export default function NewReferencePage() {
 
       if (!response.ok) throw new Error("Failed to upload references");
 
+      toast.success("References uploaded successfully!");
       router.push("/admin/references");
     } catch (error) {
       console.error("Error uploading CSV:", error);
-      alert("Failed to upload references. Please try again.");
+      toast.error("Failed to upload references. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -285,10 +287,11 @@ export default function NewReferencePage() {
 
       if (!response.ok) throw new Error("Failed to create reference");
 
+      toast.success("Reference created successfully!");
       router.push("/admin/references");
     } catch (error) {
       console.error("Error creating reference:", error);
-      alert("Failed to create reference. Please try again.");
+      toast.error("Failed to create reference. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

@@ -543,4 +543,226 @@ export function ImageIcon({ size = 24, ...props }: IconProps) {
   );
 }
 
+// Zoom In icon
+export function ZoomInIcon({ size = 24, ...props }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M11 8V14M8 11H14"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M16.5 16.5L21 21"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+// Zoom Out icon
+export function ZoomOutIcon({ size = 24, ...props }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M8 11H14"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M16.5 16.5L21 21"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+// Magnify icon - for detailed inspection
+export function MagnifyIcon({ size = 24, ...props }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="11" cy="11" r="4" stroke="currentColor" strokeWidth="1" strokeOpacity="0.4" />
+      <path
+        d="M16.5 16.5L21 21"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <circle cx="9" cy="9" r="1" fill="currentColor" opacity="0.6" />
+    </svg>
+  );
+}
+
+// Compare icon - for side-by-side comparison
+export function CompareIcon({ size = 24, ...props }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <rect x="3" y="5" width="7" height="14" rx="1" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="14" y="5" width="7" height="14" rx="1" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M6.5 9H7.5M6.5 12H7.5M6.5 15H7.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M17.5 9H18.5M17.5 12H18.5M17.5 15H18.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+// Export/Download icon
+export function ExportIcon({ size = 24, ...props }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <path
+        d="M12 4V16M12 16L7 11M12 16L17 11"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4 17V18C4 19.1046 4.89543 20 6 20H18C19.1046 20 20 19.1046 20 18V17"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+// Certificate/Document icon with 360 degree badge
+export function Certificate360Icon({ size = 24, ...props }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M8 8H16M8 12H14M8 16H12"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <circle cx="17" cy="17" r="4.5" fill="currentColor" fillOpacity="0.1" />
+      <circle cx="17" cy="17" r="4.5" stroke="currentColor" strokeWidth="1" />
+      <text
+        x="17"
+        y="18.5"
+        fontSize="5"
+        fontWeight="bold"
+        textAnchor="middle"
+        fill="currentColor"
+      >
+        360
+      </text>
+    </svg>
+  );
+}
+
+// Download icon
+export function DownloadIcon({ size = 24, ...props }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <path
+        d="M12 4V16M12 16L17 11M12 16L7 11"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4 17V18C4 19.1046 4.89543 20 6 20H18C19.1046 20 20 19.1046 20 18V17"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+// Share icon
+export function ShareIcon({ size = 24, ...props }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <circle cx="18" cy="5" r="3" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="6" cy="12" r="3" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="18" cy="19" r="3" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M8.5 10.5L15.5 6.5M8.5 13.5L15.5 17.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+    </svg>
+  );
+}
+
 

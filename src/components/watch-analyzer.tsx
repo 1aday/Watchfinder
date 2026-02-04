@@ -173,8 +173,8 @@ export function WatchAnalyzer() {
                   <CardContent className="pt-16 pb-16 px-8">
                     <div className="text-center space-y-8">
                       {/* Icon */}
-                      <div className="mx-auto w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center backdrop-blur">
-                        <svg className="w-12 h-12 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="mx-auto w-24 h-24 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center backdrop-blur">
+                        <svg className="w-12 h-12 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
@@ -195,7 +195,7 @@ export function WatchAnalyzer() {
                         <Button
                           size="lg"
                           onClick={handleStartCapture}
-                          className="min-w-[180px] h-12 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 shadow-lg shadow-blue-500/25"
+                          className="min-w-[180px] h-12 bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity shadow-lg shadow-primary/20"
                         >
                           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -255,6 +255,9 @@ export function WatchAnalyzer() {
               </div>
             ) : (
               <div className="space-y-6">
+                {/* Large Analyzing Image - Shows ABOVE photo review when analyzing */}
+                {isAnalyzing && <AnalysisLoading photos={photos} />}
+
                 {/* Photo Review Card */}
                 <Card>
                   <CardContent className="pt-4 pb-4">
@@ -275,7 +278,44 @@ export function WatchAnalyzer() {
                         </div>
                       )}
 
-                      {/* Compact Photo Strip */}
+                      {/* Analyze Button - Positioned ABOVE photo list */}
+                      {!isAnalyzing && (
+                        <div className="flex items-center gap-2">
+                          <Button
+                            onClick={handleAnalyze}
+                            disabled={isAnalyzing}
+                            size="default"
+                            className="flex-1 bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity shadow-lg shadow-primary/20"
+                          >
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Analyze
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={handleStartCapture}
+                            size="icon"
+                            className="flex-shrink-0"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            </svg>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => fileInputRef.current?.click()}
+                            size="icon"
+                            className="flex-shrink-0"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                          </Button>
+                        </div>
+                      )}
+
+                      {/* Compact Photo Strip - Now BELOW analyze button */}
                       <div className="flex gap-2 overflow-x-auto pb-1">
                         {photos.map((photo, index) => (
                           <div key={index} className="relative group flex-shrink-0">
@@ -304,40 +344,6 @@ export function WatchAnalyzer() {
                           </svg>
                         </button>
                       </div>
-
-                      {/* Compact Action Bar - Only show when not analyzing */}
-                      {!isAnalyzing && (
-                        <div className="flex items-center gap-2">
-                          <Button
-                            onClick={handleAnalyze}
-                            disabled={isAnalyzing}
-                            size="default"
-                            className="flex-1"
-                          >
-                            Analyze
-                          </Button>
-                          <Button
-                            variant="outline"
-                            onClick={handleStartCapture}
-                            size="icon"
-                            className="flex-shrink-0"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                              </svg>
-                            </Button>
-                            <Button
-                              variant="outline"
-                              onClick={() => fileInputRef.current?.click()}
-                              size="icon"
-                              className="flex-shrink-0"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                              </svg>
-                            </Button>
-                          </div>
-                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -455,11 +461,6 @@ export function WatchAnalyzer() {
               photoCount={photos.length}
             />
           )}
-        </AnimatePresence>
-
-        {/* Loading Overlay */}
-        <AnimatePresence>
-          {isAnalyzing && <AnalysisLoading photos={photos} />}
         </AnimatePresence>
       </div>
     </div>
