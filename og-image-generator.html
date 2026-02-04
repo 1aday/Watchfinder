@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1200, height=630">
+  <title>Watch Finder AI - OpenGraph Image</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 1200px;
+      height: 630px;
+      overflow: hidden;
+      font-family: 'Inter', sans-serif;
+      position: relative;
+    }
+
+    /* Luxury champagne gold gradient background */
+    .og-container {
+      width: 1200px;
+      height: 630px;
+      background: linear-gradient(135deg,
+        oklch(0.97 0.012 75) 0%,
+        oklch(0.95 0.015 80) 50%,
+        oklch(0.97 0.012 75) 100%
+      );
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Elegant gold orbs - subtle and refined */
+    .gold-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.12;
+      animation: float 8s ease-in-out infinite;
+    }
+
+    .orb-1 {
+      width: 500px;
+      height: 500px;
+      background: oklch(0.68 0.12 85);
+      top: -100px;
+      right: -100px;
+      animation-delay: 0s;
+    }
+
+    .orb-2 {
+      width: 400px;
+      height: 400px;
+      background: oklch(0.75 0.08 45);
+      bottom: -80px;
+      left: 100px;
+      animation-delay: 2s;
+    }
+
+    .orb-3 {
+      width: 350px;
+      height: 350px;
+      background: oklch(0.72 0.10 70);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation-delay: 4s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(20px, -20px) scale(1.05); }
+    }
+
+    /* Subtle noise texture overlay */
+    .noise-overlay {
+      position: absolute;
+      inset: 0;
+      opacity: 0.02;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+
+    /* Content container */
+    .content {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 80px;
+      text-align: center;
+    }
+
+    /* Premium badge */
+    .badge {
+      display: inline-block;
+      padding: 12px 28px;
+      background: oklch(0.68 0.12 85 / 0.12);
+      border: 1.5px solid oklch(0.68 0.12 85 / 0.25);
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: oklch(0.50 0.10 85);
+      margin-bottom: 48px;
+      backdrop-filter: blur(10px);
+    }
+
+    /* Main headline - Playfair Display for luxury */
+    .headline {
+      font-family: 'Playfair Display', serif;
+      font-size: 92px;
+      font-weight: 700;
+      line-height: 1.1;
+      color: oklch(0.15 0.010 65);
+      margin-bottom: 24px;
+      letter-spacing: -1.5px;
+    }
+
+    .headline-emphasis {
+      display: block;
+      background: linear-gradient(135deg,
+        oklch(0.68 0.12 85) 0%,
+        oklch(0.75 0.08 45) 50%,
+        oklch(0.68 0.12 85) 100%
+      );
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 800;
+    }
+
+    /* Tagline */
+    .tagline {
+      font-size: 26px;
+      font-weight: 500;
+      color: oklch(0.48 0.015 70);
+      margin-bottom: 56px;
+      max-width: 700px;
+      line-height: 1.5;
+    }
+
+    /* Watch icon - minimalist luxury representation */
+    .watch-icon {
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      top: 50%;
+      right: 100px;
+      transform: translateY(-50%);
+      opacity: 0.06;
+    }
+
+    .watch-icon circle {
+      stroke: oklch(0.68 0.12 85);
+      stroke-width: 3;
+      fill: none;
+    }
+
+    .watch-icon line {
+      stroke: oklch(0.68 0.12 85);
+      stroke-width: 3;
+      stroke-linecap: round;
+    }
+
+    /* Decorative elements */
+    .accent-line {
+      position: absolute;
+      height: 1px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        oklch(0.68 0.12 85 / 0.3) 50%,
+        transparent 100%
+      );
+    }
+
+    .line-top {
+      top: 60px;
+      left: 0;
+      right: 0;
+    }
+
+    .line-bottom {
+      bottom: 60px;
+      left: 0;
+      right: 0;
+    }
+
+    /* Feature pills */
+    .features {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .feature-pill {
+      padding: 10px 24px;
+      background: oklch(0.99 0.006 75);
+      border: 1px solid oklch(0.68 0.12 85 / 0.15);
+      border-radius: 30px;
+      font-size: 15px;
+      font-weight: 500;
+      color: oklch(0.48 0.015 70);
+      backdrop-filter: blur(5px);
+    }
+
+    .feature-pill::before {
+      content: "✓ ";
+      color: oklch(0.68 0.12 85);
+      font-weight: 700;
+      margin-right: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="og-container">
+    <!-- Background elements -->
+    <div class="gold-orb orb-1"></div>
+    <div class="gold-orb orb-2"></div>
+    <div class="gold-orb orb-3"></div>
+    <div class="noise-overlay"></div>
+
+    <!-- Decorative lines -->
+    <div class="accent-line line-top"></div>
+    <div class="accent-line line-bottom"></div>
+
+    <!-- Watch icon (subtle) -->
+    <svg class="watch-icon" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="40"/>
+      <circle cx="50" cy="50" r="30"/>
+      <line x1="50" y1="50" x2="50" y2="25"/>
+      <line x1="50" y1="50" x2="65" y2="50"/>
+      <circle cx="50" cy="15" r="2" fill="oklch(0.68 0.12 85)"/>
+      <circle cx="50" cy="85" r="2" fill="oklch(0.68 0.12 85)"/>
+      <circle cx="15" cy="50" r="2" fill="oklch(0.68 0.12 85)"/>
+      <circle cx="85" cy="50" r="2" fill="oklch(0.68 0.12 85)"/>
+    </svg>
+
+    <!-- Main content -->
+    <div class="content">
+      <div class="badge">AI-Powered Authentication</div>
+
+      <h1 class="headline">
+        Authenticate Your
+        <span class="headline-emphasis">Luxury Timepiece</span>
+      </h1>
+
+      <p class="tagline">
+        Instant AI analysis • Expert verification • Museum-quality precision
+      </p>
+
+      <div class="features">
+        <div class="feature-pill">Photo Analysis</div>
+        <div class="feature-pill">Reference Matching</div>
+        <div class="feature-pill">Condition Report</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Instructions for screenshot -->
+  <script>
+    // Set exact dimensions for screenshot
+    document.body.style.width = '1200px';
+    document.body.style.height = '630px';
+
+    console.log('%c📸 OpenGraph Image Ready!', 'color: #D4AF37; font-size: 20px; font-weight: bold;');
+    console.log('%cDimensions: 1200x630px (perfect for OpenGraph)', 'color: #666; font-size: 14px;');
+    console.log('%c\nTo capture:', 'color: #D4AF37; font-size: 16px;');
+    console.log('%c1. Open this file in browser at exactly 1200x630 window size', 'color: #333;');
+    console.log('%c2. Take screenshot (or use browser dev tools screenshot)', 'color: #333;');
+    console.log('%c3. Save as opengraph.png in /public folder', 'color: #333;');
+    console.log('%c4. Compress with ImageOptim or similar tool', 'color: #333;');
+  </script>
+</body>
+</html>

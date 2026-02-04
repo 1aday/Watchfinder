@@ -41,49 +41,79 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Watch Finder AI",
-  description: "AI-powered watch authentication and analysis. Capture photos, get instant AI analysis, and authenticate luxury timepieces with confidence.",
+  title: {
+    default: "Watch Finder AI | Luxury Watch Authentication",
+    template: "%s | Watch Finder AI",
+  },
+  description: "AI-powered watch authentication and analysis. Capture photos, get instant AI analysis, and authenticate luxury timepieces with confidence. Expert verification and museum-quality precision.",
   keywords: [
     "watch authentication",
-    "luxury watches", 
+    "luxury watches",
     "Rolex authentication",
     "watch verification",
     "AI watch analysis",
     "watch identifier",
     "timepiece authentication",
+    "luxury watch verification",
+    "watch condition report",
+    "authentic watches",
   ],
   authors: [{ name: "Watch Finder AI" }],
   creator: "Watch Finder AI",
+  publisher: "Watch Finder AI",
   metadataBase: new URL("https://watchfinder.ai"),
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
-    title: "Watch Finder AI",
-    description: "AI-powered watch authentication and analysis. Capture photos, get instant AI analysis, and authenticate luxury timepieces with confidence.",
-    type: "website",
+    title: "Watch Finder AI | Authenticate Your Luxury Timepiece",
+    description: "AI-powered watch authentication with instant analysis, expert verification, and museum-quality precision. Photo analysis, reference matching, and condition reports.",
+    url: "https://watchfinder.ai",
     siteName: "Watch Finder AI",
+    type: "website",
     locale: "en_US",
     images: [
       {
         url: "/opengraph.png",
         width: 1200,
         height: 630,
-        alt: "Watch Finder AI - AI-Powered Watch Analysis",
+        alt: "Watch Finder AI - Authenticate Your Luxury Timepiece with AI-powered analysis",
+        type: "image/png",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Watch Finder AI",
-    description: "AI-powered watch authentication and analysis. Capture photos, get instant AI analysis, and authenticate luxury timepieces.",
-    images: ["/opengraph.png"],
+    site: "@watchfinderai",
+    creator: "@watchfinderai",
+    title: "Watch Finder AI | Authenticate Your Luxury Timepiece",
+    description: "AI-powered watch authentication with instant analysis and expert verification. Museum-quality precision for luxury timepieces.",
+    images: {
+      url: "/opengraph.png",
+      alt: "Watch Finder AI - Authenticate Your Luxury Timepiece",
+    },
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "Watch Finder AI",
+    startupImage: "/opengraph.png",
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  verification: {
+    // Add your verification codes when available
+    // google: "your-google-verification-code",
+    // yandex: "your-yandex-verification-code",
   },
 };
 
