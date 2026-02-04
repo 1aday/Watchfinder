@@ -83,7 +83,15 @@ const formatDate = (dateString: string): string => {
 const CustomTooltip = ({
   active,
   payload,
-}: TooltipProps<number, string>) => {
+}: {
+  active?: boolean;
+  payload?: Array<{
+    payload: {
+      date: string;
+      value: number;
+    };
+  }>;
+}) => {
   if (!active || !payload || !payload.length) {
     return null;
   }
